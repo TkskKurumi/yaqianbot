@@ -2,8 +2,8 @@
 
 ## 开始
 
-安装依赖库[^*]
-[^*]: 其中AnnoyIndex在Windows下安装需要VC++生成工具，或者使用已编译的[wheel](https://www.lfd.uci.edu/~gohlke/pythonlibs/#annoy)安装。
+安装依赖库[^注]
+[^注]: 其中AnnoyIndex在Windows下安装需要VC++生成工具，或者使用已编译的[wheel](https://www.lfd.uci.edu/~gohlke/pythonlibs/#annoy)安装。
 
 ``` shell
 pip install -r requirements.txt
@@ -21,4 +21,3 @@ run(port=port)
 ```shell
 python main.py
 ```
-
