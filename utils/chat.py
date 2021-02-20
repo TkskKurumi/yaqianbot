@@ -1,10 +1,8 @@
-#from none_converters import jieba
 import jieba
-from workpathmanager import pathManager
 from glob import glob
 import myio,json,myhash,weight_choice,math,mymath,re,random
 from os import path
-wpm=pathManager(appname='setubot')
+#wpm=pathManager(appname='setubot')
 #setubot_mainpth=wpm.getpath(session="mainpth",ask_when_dne=True)
 lc4s=jieba.lcut_for_search
 

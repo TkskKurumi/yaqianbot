@@ -1,14 +1,13 @@
 from bot_backend import *
-from myjobs import jobs
 import jieba,traceback,myio
 import random,chat
 from glob import glob
 from os import path
 from threading import Lockpth=path.join(mainpth,'dialogs')
-dialogs=chat.dialogs.fromJsons(glob(pth,'*.json')))
+dialogs=chat.dialogs.fromJsons(glob(path.join(pth,'*.json')))
 def reload_dialogs():
 	global dialogs
-	dialogs=chat.dialogs.fromJsons(glob(pth,'*.json')))
+	dialogs=chat.dialogs.fromJsons(glob(path.join(pth,'*.json')))
 	dialogs.initial_keyword_filt_accelerate()
 dlgs_by_gid={}
 repeat_mode=myhash.splitedDict(pth=path.join(mainpth,'saves','repeat_mode'),splitMethod=lambda x:str(x)[:3])
