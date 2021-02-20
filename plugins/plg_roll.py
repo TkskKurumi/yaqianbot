@@ -11,6 +11,8 @@ def judge_abua(s):
 	return None
 	
 def random_mes_rec(minlen=2,maxlen=4,rate=1.1):
+	if('plg_chat' not in plugins):
+		return "什么"
 	__=1
 	dlgs_=get_plugin_namespace('plg_chat').dlgs_by_gid
 	dlgs__=list(dlgs_)
@@ -98,36 +100,37 @@ def wen(ctx,match,rest):
 		else:
 			return random_mes_rec(minlen=2,maxlen=3)
 	smgsm=re.compile('干?什么|怎么做')
-	if(('为什么' in temp) or smgsm.findall(temp) or ('谁' in temp)):
-		_=temp.split('为什么')
-		__=len(_)-1
-		__=[random_mes_rec(minlen=3,maxlen=7) for ___ in range(__)]
-		ret=''
-		for i in range(len(__)):
-			ret+=_[i]+'因为'+__[i]+'，所以'
-		ret+=_[-1]
-		
-		#_=ret.split('什么')
-		_=smgsm.split(ret)
-		__=len(_)-1
-		__=[random_mes_rec(maxlen=5) for ___ in range(__)]
-		ret=''
-		for i in range(len(__)):
-			ret+=_[i]+__[i]
-		ret+=_[-1]
-		
-		_=ret.split('谁')
-		__=len(_)-1
-		__=[shui() for ___ in range(__)]
-		ret=''
-		for i in range(len(__)):
-			ret+=_[i]+__[i]
-		ret+=_[-1]
-		
-		'''ret=ret.replace('你','cantbeinthestring')
-		ret=ret.replace('我','你')
-		ret=ret.replace('cantbeinthestring','我')'''
-		temp=ret
+	if('plg_chat' in plugins):
+		if(('为什么' in temp) or smgsm.findall(temp) or ('谁' in temp)):
+			_=temp.split('为什么')
+			__=len(_)-1
+			__=[random_mes_rec(minlen=3,maxlen=7) for ___ in range(__)]
+			ret=''
+			for i in range(len(__)):
+				ret+=_[i]+'因为'+__[i]+'，所以'
+			ret+=_[-1]
+			
+			#_=ret.split('什么')
+			_=smgsm.split(ret)
+			__=len(_)-1
+			__=[random_mes_rec(maxlen=5) for ___ in range(__)]
+			ret=''
+			for i in range(len(__)):
+				ret+=_[i]+__[i]
+			ret+=_[-1]
+			
+			_=ret.split('谁')
+			__=len(_)-1
+			__=[shui() for ___ in range(__)]
+			ret=''
+			for i in range(len(__)):
+				ret+=_[i]+__[i]
+			ret+=_[-1]
+			
+			'''ret=ret.replace('你','cantbeinthestring')
+			ret=ret.replace('我','你')
+			ret=ret.replace('cantbeinthestring','我')'''
+			temp=ret
 	if('多少' in temp):
 		_=temp.split('多少')
 		temp=''
