@@ -9,8 +9,9 @@
 pip install -r requirements.txt
 ```
 
+配置cqhttp，使用反向websocket连接，默认为8008端口。可以在main.py中修改。
 
-配置cqhttp，使用反向websocket连接，默认为8008端口。可以在main.py中修改。[aiocqhttp使用反向websocket连接的文档。](https://aiocqhttp.nonebot.dev/#/getting-started#%E4%BD%BF%E7%94%A8%E5%8F%8D%E5%90%91-websocket)
+[aiocqhttp使用反向websocket连接的文档。](https://aiocqhttp.nonebot.dev/#/getting-started#%E4%BD%BF%E7%94%A8%E5%8F%8D%E5%90%91-websocket)
 
 ```python
 run(port=port)
