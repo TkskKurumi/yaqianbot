@@ -1,0 +1,9 @@
+bs4
+requests
+requests_toolbelt
+pillow
+chardet
+jieba
+aiocqhttp
+python-opencv
+annoy
