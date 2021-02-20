@@ -1,0 +1,22 @@
+[
+	{
+		"ask_key_text": "rickroll rick roll",
+		"reply_text": "",
+		"reply_voice": "roll"
+	},
+	{
+		"ask_key_text": "吃烧烤，胖十斤",
+		"reply_text": "胖死你",
+		"reply_picture": "sample"
+	},
+	{
+		"ask_key_text": "一万个",
+		"reply_text": "很多嘛，有那么多吗！？",
+		"reply_picture": null
+	},
+	{
+		"ask_key_text": "消除恐惧的最好办法就是面对恐惧",
+		"reply_text": "加油，奥利给！",
+		"reply_picture": null
+	}
+]
