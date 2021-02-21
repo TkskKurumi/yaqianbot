@@ -20,7 +20,7 @@ else:
 	fnt=pic2pic.default_font
 if(not path.exists(fnt)):
 	fnt='simhei.ttf'
-client_info=myio.loadjson(path.join(pth,'client_info.json'))
+
 token_cache={}
 if(path.exists(path.join(pth,'token_cache.json'))):
 	token_cache=myio.loadjson(path.join(pth,'token_cache.json'))
@@ -28,6 +28,7 @@ def get_token():
 	tm=time.time()
 	if(token_cache.get('expire_time',0)<tm):
 		data={'scope':'public','grant_type':'client_credentials'}
+		client_info=myio.loadjson(path.join(pth,'client_info.json'))
 		data.update(client_info)
 		r=requests.post(r'https://osu.ppy.sh/oauth/token',data=data)
 		try:
