@@ -9,7 +9,7 @@ plugin_disabled=myhash.splitedDict(pth=path.join(mainpth,'saves','disabled_plugi
 
 kjml={}
 trim_kjml=myhash.trimDict()
-admin_ids=['402254524','2472252332']
+#admin_ids=['402254524','2472252332']
 def register_kjml(id,func):
 	simpleid=trim_kjml.add(myhash.hashs(id),id)
 	kjml[id]=func
@@ -59,7 +59,8 @@ def active_count_warning(ctx):
 @start_with('reload_plugin')
 def admin_reload_plugin(ctx,match,rest):
 	sctx=simple_ctx(ctx)
-	if(str(sctx.user_id) not in admin_ids):
+	#if(str(sctx.user_id) not in admin_ids):
+	if(not is_su(ctx)):
 		simple_send(ctx,'你没有此命令的权限呐！')
 		return
 	rest=rest.strip()
@@ -73,7 +74,8 @@ def admin_reload_plugin(ctx,match,rest):
 @start_with('exec')
 def admin_exec(ctx,match):
 	sctx=simple_ctx(ctx)
-	if(str(sctx.user_id) not in admin_ids):
+	#if(str(sctx.user_id) not in admin_ids):
+	if(not is_su(ctx)):
 		simple_send(ctx,'你没有运行的权限呐！想Hack吗？爬爬爬')
 		return
 	text=sctx.text[4:]
@@ -96,7 +98,8 @@ def admin_exec(ctx,match):
 def admin_test(ctx):
 	sctx=simple_ctx(ctx)
 	uid=sctx.user_id
-	if(uid not in admin_ids):
+	#if(uid not in admin_ids):
+	if(not is_su(ctx)):
 		return
 	from bot_backend import receiver_times
 	_=[]
@@ -124,7 +127,8 @@ def admin_test(ctx):
 def admin_post(ctx,match,rest):
 	sctx=simple_ctx(ctx)
 	uid=sctx.user_id
-	if(uid not in admin_ids):
+	#if(uid not in admin_ids):
+	if(not is_su(ctx)):
 		return
 	rest=rest.strip()
 	if(not path.exists(rest)):
@@ -149,7 +153,8 @@ def admin_get(ctx,match,rest):
 	uid=sctx.user_id
 	rest=rest.strip()
 	ls=rest.split()
-	if(uid not in admin_ids):
+	#if(uid not in admin_ids):
+	if(not is_su(ctx)):
 		return
 	if(len(ls)<2):
 		simple_send(ctx,'filename and URL')
@@ -219,17 +224,18 @@ def admin_sysinfo(ctx,match):
 					i=Image.open(i)
 					i=pic2pic.im_sizelimitmax(i,(wid-border*2,mxhei))
 				else:
-					i=pic2pic.txt2im_ml(i,fill=(0,0,0,255),bg=(255,)*4,fixedHeight=lnheight,width=wid-border*2,trim_width=True,align=0.5)
+					i=pic2pic.txt2im_ml(i,fill=(0,0,0,255),bg=(0,)*4,fixedHeight=lnheight,width=wid-border*2,trim_width=True,align=0.5)
 			imgs.append(i)
 			hei+=i.size[1]+border
 			_wid=max(_wid,i.size[0]+border*2)
 		wid=_wid
+		mes=Image.new("RGBA",(wid,hei),(255,)*4)
 		if('plg_setu' in plugins):
-			mes=plugins['plg_setu'].rand_img(ctx)
-			mes=Image.open(mes).convert("RGBA")
-			mes=pic2pic.imBanner(mes,(wid,hei))
-		else:
-			mes=Image.new("RGBA",(wid,hei),(255,)*4)
+			setu=plugins['plg_setu'].rand_img(ctx)
+			setu=Image.open(setu).convert("RGBA")
+			setu=pic2pic.imBanner(setu,(wid,hei))
+			mes=Image.blend(mes,setu,0.2)
+			
 		for i in imgs:
 			mes.paste(i,box=((wid-i.size[0])//2,top),mask=i)
 			top+=i.size[1]+border

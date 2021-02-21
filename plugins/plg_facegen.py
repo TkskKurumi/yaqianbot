@@ -954,3 +954,4 @@ def cmd_grou_pintu(ctx,match,rest):
 	simple_send(ctx,ret,im_size_limit=3<<20)
 	index.unload()
 	index1.unload()
+	

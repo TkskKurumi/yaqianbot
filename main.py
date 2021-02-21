@@ -1,4 +1,4 @@
-from bot_backend import my_load_plugin,running,run
+from bot_backend import my_load_plugin,running,run,add_su
 from os import sys,path
 sys.path.append(path.dirname(__file__))
 sys.path.append(path.join(path.dirname(__file__),'plugins'))
@@ -9,8 +9,9 @@ for i in ['plg_admin','plg_group',
 "plg_checkin",
 "plg_osu",
 "plg_chat",
-"plg_facegen"
+"plg_facegen",
+"plg_setu"
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
-
+add_su(402254524)
 run()

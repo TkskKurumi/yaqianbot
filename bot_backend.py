@@ -396,8 +396,11 @@ def general_reveicer(ctx):
 		print('ln232',e)
 	
 superusers=set()
+def add_su(su):
+	superusers.add(int(su))
+	superusers.add(str(su))
 def is_su(event):
-	if(isinstance(event),simple_evt):
+	if(isinstance(event,Event) or isinstance(event,simple_evt)):
 		return event.user_id in superusers
 	elif(callable(event)):
 		@wraps(event)
