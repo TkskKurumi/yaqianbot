@@ -4,7 +4,6 @@ os.sys.path.append(path.join(path.dirname(__file__),'utils'))
 from aiocqhttp import CQHttp,Event
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
-from os import path
 from make_gif import make_gif
 from aiocqhttp import MessageSegment as mseg
 import asyncio,os,myhash,re,shutil,traceback
@@ -12,9 +11,11 @@ import html,threading,schedule,time,random,myio
 from lcg import lcg as lcg_
 from mytimer import speedo,throttle
 from functools import wraps
-#from workpathmanager import pathManager
+
 from myhash import splitedDict
 from glob import glob
+#pm=pathManager(appname='setubot-iot')
+#mainpth=pm.getpath(session='mainpth',ask_when_dne=True)
 mainpth=path.join(path.dirname(__file__),'files')
 _backend_type='cqhttp'
 #bot=CQHttp()
@@ -61,35 +62,42 @@ running=True
 threading_cnts={}
 pool_active_count=0
 def threading_cnt(name):
-	def f(future,name=name):
-		global pool_active_count
-		pool_active_count-=1
-		threading_cnts[name]-=1
-	def deco(func,name=name):
+	def f(func,args,kwargs,func_name=name):
+		try:
+			global pool_active_count,threading_cnts
+			pool_active_count+=1
+			threading_cnts[func_name]=threading_cnts.get(func_name,0)+1
+			try:
+				func(*args,**kwargs)
+			except Exception as e:
+				pool_active_count-=1
+				threading_cnts[func_name]-=1
+				print(e)
+				raise e
+			pool_active_count-=1
+			threading_cnts[func_name]-=1
+		except Exception as ee:
+			print(ee,func,args,kwargs,func_name)
+	def deco(func):
 		@wraps(func)
 		def inner(*args,**kwargs):
-			global pool_active_count
-			threading_cnts[name]=threading_cnts.get(name,0)+1
-			pool_active_count+=1
-			thread_pool.submit(func,*args,**kwargs).add_done_callback(f)
+			thread_pool.submit(f,func,args,kwargs)
 		return inner
 	return deco
+
 def on_exception_send(func):
 	@wraps(func)
 	def inner(ctx,*args,**kwargs):
 		try:
 			func(ctx,*args,**kwargs)
 		except Exception as e:
-			fexc=traceback.format_exc()
+			fexc=str(ctx)+'\n'+traceback.format_exc()
 			print(fexc)
 			name="exception_"+myhash.hashs(fexc)
-			myio.savetext(path.join(mainpth,"logs",name),fexc)
+			myio.savetext(path.join(mainpth,"logs",name+".log"),fexc)
 			simple_send(ctx,'出现了谜之错误%s\n日志:%s'%(e,name))
-			
 	return inner
-def reduce_active_count(future):
-	global pool_active_count
-	pool_active_count-=1
+
 def threading_run(func):
 	return threading_cnt(func.__name__)(func)
 
@@ -272,6 +280,14 @@ def receiver(func):
 	receivers[func.__name__]=func
 	#print(receivers)
 	return func
+receivers_nlazy={}
+def receiver_nlazy(func):
+	global receivers
+	print('register nolazy receiver',func.__name__)
+	receivers_nlazy[func.__name__]=func
+	#print(receivers)
+	return func
+
 
 def start_with(st):
 	_re=re.compile(st)
@@ -340,27 +356,18 @@ def my_load_plugin(file):
 	else:
 		plugins[name]=mod
 send_speedo=speedo(5)
-receive_speedo=speedo(5)
+receive_speedo=speedo(20)
 skip_until=0
 @threading_run
 def general_reveicer(ctx):
 	global send_speedo,receive_speedo,receivers,pool_active_count,skip_until
 	sctx=simple_ctx(ctx)
-	if(time.time()<skip_until):
-		en=list(threading_cnts.items())
-		en=[_ for _ in en if _[1] ]
-		en.sort(key=lambda x:-x[1])
-		print('skip message!!!',en)
-		return
+	
 	#print(sctx)
 	#print('ln218')
 	try:
 		print('%.1f/sec'%receive_speedo(),'%.1f/sec'%send_speedo(),pool_active_count)
 		schedule.run_pending()
-		'''if(sctx.user_id == str(ctx.CurrentQQ)):
-			self_nickname[sctx.group_id]=sctx.user_name
-			return'''
-		#print(receivers,plugins)
 		if(sctx.pics):
 			for i in sctx.pics:
 				for j in get_pic_cnt_dic(sctx):
@@ -368,26 +375,26 @@ def general_reveicer(ctx):
 					cnt,url=j.get(name,(0,url))
 					j[name]=(cnt+1,url)
 		receive_speedo.cnt()
-		if(pool_active_count>max_workers*0.5):
+		for _,__ in receivers_nlazy.items():
+			__(ctx)
+		if(time.time()<skip_until):
 			en=list(threading_cnts.items())
+			en=[_ for _ in en if _[1] ]
 			en.sort(key=lambda x:-x[1])
-			pool_active_count=sum([x[1]for x in en])
-			#enen=min(len(en),5)
-			#print(en[:enen])
-			rate=pool_active_count/max_workers
-			rate=1-(1-rate)**2 if rate<1 else 1
-			print('!!!!!!active count high!!!!',en)
-			if(random.random()<rate):
-				print('skip message!!!')
-				skip_until=time.time()+30
-				return
-			
-			
+			print('skip message!!!',en)
+			return
+		if(pool_active_count>max_workers*0.8):
+			en=list(threading_cnts.items())
+			en=[_ for _ in en if _[1] ]
+			en.sort(key=lambda x:-x[1])
+			print('skip message!!!',en)
+			skip_until=time.time()+60
+			return
 		for _,__ in receivers.items():
-			#print('接收器'+__.__name__)
 			__(ctx)
 	except Exception as e:
 		print('ln232',e)
+	
 superusers=set()
 def is_su(event):
 	if(isinstance(event),simple_evt):
@@ -400,7 +407,6 @@ def is_su(event):
 		return inner
 	else:
 		return str(event.user_id) in superusers
-
 async def _general_reveicer(event):
 	general_reveicer(event)
 async def _echo(event):
@@ -409,18 +415,31 @@ async def _echo(event):
 	f5=event.message[:5]
 	
 	if(event.message=='ping'):
-		await _bot.send(event,'pong,%d'%pool_active_count)
-	elif(f5=='_perf'):
+		mes=['pong,%d'%pool_active_count]
+		#await _bot.send(event,)
+		#global skip_until
+		if(time.time()<skip_until):
+			mes.append('偷懒中，还有%d秒结束'%(skip_until-time.time()))
+		else:
+			mes.append('正在努力干活哟')
+		simple_send(event,mes)
+	elif(event.message=='pong'):
 		en=list(threading_cnts.items())
 		en.sort(key=lambda x:-x[1])
 		enen=min(len(en),5)
-		
+		en=en[:enen]
+
 		en1=list(receiver_times.items())
 		en1.sort(key=lambda x:-x[1][0])
 		enen1=min(len(en1),5)
-		enen1=en1[:enen1]
-		await _bot.send(event,str(en[:enen]))
-		await _bot.send(event,str(enen1))
+		en1=en1[:enen1]
+		mes=[]
+		for i,j in en:
+			mes.append("%d x %s"%(j,i))
+		for i,j in en1:
+			j,k=j
+			mes.append("%s %d sec %d times"%(i,j,k))
+		simple_send(event,mes)
 	elif(f4=='xxec' and event.user_id==402254524):
 		mes=html.unescape(event.message[4:])
 		exec(mes)
@@ -434,7 +453,8 @@ _bot=CQHttp()
 _bot.on_message(_general_reveicer)
 _bot.on_message(_echo)
 #_bot.on_message(_xxec)
-loop.create_task(_bot.run_task(host='127.0.0.1',port=8008))
 
-def run():
+def run(port=8008):
+	
+	loop.create_task(_bot.run_task(host='127.0.0.1',port=port))
 	loop.run_forever()

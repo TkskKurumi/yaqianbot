@@ -48,10 +48,10 @@ def make_gif(imgs,size=None,ss=None,pth=pth,fps=12,quality=100,width=None,height
 		seqpths=glob_exts(seqpth,['png'])
 		seqpths=' '.join(['"%s"'%i for i in seqpths])
 	else:
-		seqpths=seqpth+'\*.gif'
+		seqpths=seqpth+'\*.png'
 	
 	script=f'gifski {seqpths} --fps {fps} --quality {quality} --width {size[0]} --height {size[1]} -o "{svpth}"'
-	#print(script)
+	print(script)
 	os.popen(script).read()
 	
 	
@@ -60,6 +60,6 @@ def make_gif(imgs,size=None,ss=None,pth=pth,fps=12,quality=100,width=None,height
 	return svpth	
 if(__name__=='__main__'):
 	
-	imgs=[Image.open(i) for i in glob_exts(r'M:\pic\ahegao',['jpg'])[10:]]
+	imgs=[Image.open(i) for i in glob_exts(r'L:\录制\zhuangpingmu',['png'])[:10]]
 	#print(imgs)
 	print(make_gif(imgs,ss=10000))
