@@ -17,7 +17,14 @@ proxy_dict = {
 
 #wpm=pathManager(appname='lcg_general')
 dbg=False
-hashs=lambda x:myhash.hashs(myhash.hashi(x,leng=18,offs=7))
+#hashs=lambda x:myhash.hashs(myhash.hashi(x,leng=18,offs=7))
+def hashi(s,le=10):
+	reti=0
+	for idx,i in enumerate(s):
+		reti^=ord(i)<<(idx%le)
+	return reti
+def hashs(s):
+	return hex(hashi(s,16))[2:]
 def cookie_json2cookiejar(dic):
 	cookiejar=requests.cookies.RequestsCookieJar()
 	for i in dic:

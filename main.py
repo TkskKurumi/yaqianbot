@@ -8,7 +8,8 @@ for i in ['plg_admin','plg_group',
 "plg_roll",
 "plg_checkin",
 "plg_osu",
-"plg_chat"
+"plg_chat",
+"plg_facegen"
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
 
