@@ -11,6 +11,8 @@
 /*/__pycache__/
 /utils/osu/cache*/
 /utils/emoji/
+/utils/pyxyv/
+/utils/bilibili/
 !/files/dialogs/sample.json
 !/files/dialogs/picture/sample.jpg
 !/files/dialogs/voice/roll.mp3
