@@ -11,7 +11,8 @@ for i in ['plg_admin','plg_group',
 "plg_chat",
 "plg_facegen",
 "plg_setu",
-"plg_bilisub"
+"plg_bilisub",
+"plg_customchat"
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
 add_su(402254524)
