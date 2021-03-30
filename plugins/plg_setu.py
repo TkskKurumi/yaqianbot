@@ -129,7 +129,10 @@ recent_sent_setu_illust_info={}
 def modified_img(pth):
 	if(pth[-3:]=='gif'):
 		return pth
+	
 	img=Image.open(pth)
+	if(img.mode!='RGB'):
+		return pth
 	w,h=img.size
 	x,y=random.randrange(w),random.randrange(h)
 	c=[(_+128)%256 for _ in img.getpixel((x,y))]
