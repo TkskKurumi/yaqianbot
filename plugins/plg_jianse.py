@@ -20,3 +20,15 @@ def cmd_jianse(ctx):
 	else:
 		simple_send(ctx,'不够色！！')
 
+@receiver
+@threading_run
+def cmd_autojianse(ctx):
+	sctx=simple_ctx(ctx)
+	if(sctx.pics):
+		pics=sctx.get_rpics()
+		for i in pics:
+			from PIL import Image
+			im=Image.open(i)
+			if(js.jian(im)):
+				simple_send(ctx,'色图！！')
+				return
