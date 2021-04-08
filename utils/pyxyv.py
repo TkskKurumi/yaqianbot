@@ -42,8 +42,8 @@ def savebin(filename,t,f=True):
 	f.write(t)
 	f.close()
 proxy_dict = {
-    "http": "http://127.0.0.1:1081",
-    "https": "http://127.0.0.1:1081"
+    "http": "http://127.0.0.1:1082",
+    "https": "http://127.0.0.1:1082"
 }	
 header=getheader.headers
 
@@ -851,7 +851,8 @@ if(__name__=='__main__'):
 	
 	#info=getIllustInfoByPID(81730617)
 	#print(getImageFilesByPID_(85763605,quality='regular'))
-	test_ranking_pic()
+	for pid in [87160884,87174375,87135355,87170282,87184077,87125991,87149851]:
+		getImageFilesByPID_(pid,quality='small')
 	#ims=getImageFilesByPID_(81730617,quality='regular')
 	#illust_illust_info(info,Image.open(ims[0])).save(r'G:\temp.png')
 	

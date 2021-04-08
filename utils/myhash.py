@@ -329,6 +329,7 @@ class splitedDict:
 	def __dict__(self):
 		print('dict!!!')
 		return self.toDict()
+	
 	def to_list(self):
 		ret=[]
 		

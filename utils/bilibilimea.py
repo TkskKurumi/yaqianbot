@@ -401,8 +401,10 @@ def get_user_info_by_uid(uid,acceptable_time=300):
 		ret.update(get_info())
 	except Exception as e:
 		print('get info error')
-	
-	ret.update(get_follow_stat())
+	try:
+		ret.update(get_follow_stat())
+	except Exception:
+		pass
 	try:
 		ret.update(get_room_info_old())
 	except Exception as e:
@@ -823,5 +825,4 @@ def get_dynamic_id(data):
 		dyid='d%s'%card['item']['rp_id']
 		return dyid
 if(__name__=='__main__'):
-	j=get_live_info(12845193)
-	myio.dumpjson(path.join(mainpth,'temp.json'),j)
+	print(get_gift_pic_by_name('小心心'))
