@@ -50,3 +50,7 @@ bot有Pixiv爬虫功能，bot需要本地代理https://127.0.0.1:1081（在/util
 #### 对话的调整
 
 `SUPERUSER`输入`/rr`获取bot最近一次的回复，输入`/dr`会降低实际问句和设定问句中的词语的相关性，输入`/ar`加强相关性。
+
+# 网易云
+
+需要在localhost:3000运行[网易云API](https://github.com/Binaryify/NeteaseCloudMusicApi)。
