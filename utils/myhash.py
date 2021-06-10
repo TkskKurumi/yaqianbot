@@ -9,7 +9,7 @@ import threading
 def im_sizelimitmax(im,sizelimit):
 	siz=sizelimitmax(im.size,sizelimit)
 	return im.resize(siz,Image.LANCZOS)
-
+	
 def sizelimitmax(siz,limitsiz):
 	r=1
 	if(limitsiz[0]<siz[0]):
@@ -174,7 +174,6 @@ def hashs(s,c=''):
 		return '-'+ret
 	else:
 		return ret
-
 class trimDict:
 	def __init__(self):			#hash之后的字符串，保留可以区分不同条目最短的前缀
 		self.dic={}				#例如，依次加入了abstract,	absolute,	abc,abs,ab1,ab2,ab12,cat
@@ -182,8 +181,7 @@ class trimDict:
 		self.Lock=threading.Lock()
 	def add(self,key,value):
 		self.Lock.acquire()
-		
-		hashedkey=hashs(hashi(key,offs=7),'1234567890abcdefghijklmnopqrstuvwxyz=')
+		hashedkey=hashs(key)
 		if(key in self.hashedKey):
 			trimedKey=self.hashedKey[key]
 			self.dic[trimedKey]=value
@@ -224,13 +222,8 @@ class splitedDict:
 		
 		if((pth not in self.lazy_loaded)and(path.exists(pth))):
 			self.lazy_loaded.add(pth)
-			try:
-				_=myio.loadjson(pth)
-			except Exception as e:
-				raise Exception('Error loading json %s'%pth)
-			self.update(_)
-		elif(pth not in self.lazy_loaded):
-			self.lazy_loaded.add(pth)
+			self.update(myio.loadjson(pth))
+			
 	def update(self,dic):
 		if(not(dic)):
 			return None
@@ -250,8 +243,7 @@ class splitedDict:
 			if(name in self.dic[sk]):
 				ret=self.dic[sk][name]
 				self.dic[sk].pop(name)
-				if(self.autosave):
-					self.dumpPart1(name)
+				
 				return ret
 		if(args):
 			return args[0]

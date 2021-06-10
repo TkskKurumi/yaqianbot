@@ -20,7 +20,7 @@ else:
 	fnt=pic2pic.default_font
 if(not path.exists(fnt)):
 	fnt='simhei.ttf'
-
+client_info=myio.loadjson(path.join(pth,'client_info.json'))
 token_cache={}
 if(path.exists(path.join(pth,'token_cache.json'))):
 	token_cache=myio.loadjson(path.join(pth,'token_cache.json'))
@@ -28,7 +28,6 @@ def get_token():
 	tm=time.time()
 	if(token_cache.get('expire_time',0)<tm):
 		data={'scope':'public','grant_type':'client_credentials'}
-		client_info=myio.loadjson(path.join(pth,'client_info.json'))
 		data.update(client_info)
 		r=requests.post(r'https://osu.ppy.sh/oauth/token',data=data)
 		try:
@@ -44,7 +43,7 @@ def get_token():
 	return token_cache['token']
 
 headera=copy.copy(getheader.headers)
-#headera['Authorization']='Bearer '+get_token()
+headera['Authorization']='Bearer '+get_token()
 lcg_l=lcg(workpth=path.join(pth,'cache_long'),expiretime=86400,proxies={})
 lcg_s=lcg(workpth=path.join(pth,'cache_short'),expiretime=15,proxies={})
 base_url='https://osu.ppy.sh/api/v2/'
@@ -162,7 +161,7 @@ def illust_user_info(uinfo,bg=None,scores=None,score_subtitles=None,score_mode=N
 	
 	layer1=new_layer()	#paste rank
 	rank_height=username_height*(grate**0.5)
-	pp,rank=uinfo['statistics']['pp'],uinfo['statistics']['global_rank']
+	pp,rank=uinfo['statistics']['pp'],uinfo['statistics']['pp_rank']
 	rank_text="%.1fpp / #%d"%(pp,rank)
 	prank=pic2pic.txt2im(rank_text,fill=(255,)*4,bg=(0,)*4,fixedHeight=rank_height,font=fnt)
 	layer1.paste(prank,(width-prank.size[0]-border*2,border*2))
@@ -316,6 +315,5 @@ if(__name__=='__main__'):
 	exit()'''
 	
 	uinfo=get_user('TkskKurumi',mode='osu')
-	myio.dumpjson(r'D:\temp.json',uinfo)
 	illust_user_info(uinfo,score_mode='osu').show()
 	

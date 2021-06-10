@@ -28,9 +28,11 @@ def get_twimg(a,res='72x72'):
 	return lcg_l.get_image(url,proxies={})
 def get_openemoji(a):
 	a=format_name(a).upper()
+	print('ln31',a)
 	url="https://openmoji.org/php/download_from_github.php?emoji_hexcode=%s&emoji_variant=color"%a
 	return lcg_l.get_image(url,proxies={})
 def get_emoji(a):
+	print('get emoji',a)
 	try:
 		return get_openemoji(a)
 	except Exception as e:
@@ -46,4 +48,4 @@ def get_emoji(a):
 	return Image.open(random.choice(glob(workpth+r'\err\*.png')))
 	
 if(__name__=='__main__'):
-	get_emoji(0x1f195).show()
+	get_emoji('✿').show()

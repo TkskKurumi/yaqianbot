@@ -777,8 +777,8 @@ def cmd_bend_gif(ctx):
 @receiver
 @threading_run
 @on_exception_send
-@start_with('[!！/]?印象分型')
-def cmd_az(ctx):
+@start_with('[!！/]?印象分型|/色板')
+def cmd_az(ctx,match,rest):
 	sctx=simple_ctx(ctx)
 	from myGeometry import point
 	from myMesh import mesh as Mesh
@@ -811,11 +811,30 @@ def cmd_az(ctx):
 		A,B,C=abc
 		A,B,C=mesh.points[A],mesh.points[B],mesh.points[C]
 		ctr=(A+B+C)/3
-		shuffle(colors)
-		c=colors[1]+rnd()*(colors[0]-colors[1])
+		#shuffle(colors)
+		#c=colors[1]+rnd()*(colors[0]-colors[1])
+		#c=int(c[0]),int(c[1]),int(c[2])
+		c=gn(get(im,*ctr.xy))
 		c=int(c[0]),int(c[1]),int(c[2])
+		
 		for x,y in xy:
 			im_new.putpixel((x,y),c)
+	if(match.group() == '/色板'):
+		for abc,xy in mesh.get_tri_integral_point().items():
+			A,B,C=abc
+			A,B,C=mesh.points[A],mesh.points[B],mesh.points[C]
+			ctr=(A+B+C)/3
+			#shuffle(colors)
+			#c=colors[1]+rnd()*(colors[0]-colors[1])
+			#c=int(c[0]),int(c[1]),int(c[2])
+			c=gn(get(im,*ctr.xy))
+			c=int(c[0]),int(c[1]),int(c[2])
+			c1=int((c[0]+128)%255),int((c[1]+128)%255),int((c[2]+128)%255)
+			t=pic2pic.txt2im(str(c),fixedHeight=18,fill=c,bg=(0,0,0,0),shadow_fill=c1,shadow_delta=(3,3))
+			x,y=ctr.x-t.size[0]/2,ctr.y-t.size[1]/2
+			x=max(0,min(width-t.size[0]))
+			y=max(0,min(height-t.size[1]))
+			im_new.paste(t,box=(x,y),mask=t)
 	simple_send(ctx,im_new)
 
 @receiver_nlazy
@@ -856,7 +875,16 @@ def cmd_makeqr(ctx,match,rest):
 			(1-dots)/2<=yy<=(1+dots)/2):
 				bg.putpixel((x,y),qr.getpixel((x,y)))
 	simple_send(ctx,bg)
-	
+@receiver
+@threading_run
+@on_exception_send
+@start_with('[!！/]gan')
+def cmd_gan(ctx):
+	idx=random.randrange(0,50000)
+	url=r'https://www.thiswaifudoesnotexist.net/example-%d.jpg'%idx
+	from bot_backend import lcg_eternal
+	im=lcg_eternal.get_image(url)
+	simple_send(ctx,im)
 qunpintu=dict()
 @receiver
 @threading_run
@@ -954,3 +982,51 @@ def cmd_grou_pintu(ctx,match,rest):
 	simple_send(ctx,ret,im_size_limit=3<<20)
 	index.unload()
 	index1.unload()
+@receiver
+@threading_run
+@on_exception_send
+@start_with('/变形')
+def cmd_bianxing(ctx):
+	from mesh_deform import mesh_deform,point
+	from PIL import Image
+	from pic2pic import squareSize
+	from math import log
+	im=Image.open(simple_ctx(ctx).get_rpics()[0])
+	#im=Image.open(r"M:\pic\meina.jpg")
+	im=squareSize(im,1e4)
+	w,h=im.size
+	points=[]
+	for x in [0,w-1]:
+		for y in [0,h-1]:
+			points.append((x,y))
+	from random import randrange as rrg
+	for i in range(8):
+		points.append((rrg(w),rrg(h)))
+	md=mesh_deform(im,mesh_cnt=0,ensure_corner=False,qdpoints=points)
+	original=md.points[::]
+	integ=[point(0,0) for i in original]
+	distu=[point(rrg(-w//4,w//4),rrg(-h//4,h//4)) for i in original]
+	for idx,p in enumerate(distu):
+		md.points[idx]=p+original[idx]
+
+	fn=20
+	K1=fn/70
+	K2=1-0.03**(1/fn)
+	print(K1,K2)
+	frms=[]
+	for i in range(fn):
+		for idx,p in enumerate(md.points):
+			delta=original[idx]-p
+			integ[idx]=delta*K1+integ[idx]
+			md.points[idx]=p+delta*K2+integ[idx]
+		frms.append(md.render1())
+	#simple_send(ctx,plugins["plg_facegen"].make_gif(frms,fps=8))
+	fn=5
+	#fK=lambda x,fn:(0.03**(1/fn)) * (4**((x-(fn-1)/2) ))
+	K2=1-0.03**(1/fn)
+	for i in range(fn):
+		for idx,p in enumerate(md.points):
+			delta=original[idx]+distu[idx]-p
+			md.points[idx]=p+delta*K2
+		frms.append(md.render1())
+	simple_send(ctx,make_gif(frms,fps=12))

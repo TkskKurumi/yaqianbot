@@ -9,7 +9,11 @@ import numpy as np
 import cv2
 #一坨乱七八糟的图片处理的东西，写不动注释了
 __file__pth=path.dirname(__file__)
-default_font=(list(glob(path.join(__file__pth,'*.ttf')))+list(glob(path.join(__file__pth,'*.ttf'))))[0]
+default_font=(list(glob(path.join(__file__pth,'*.ttf')))+list(glob(path.join(__file__pth,'*.otf'))))
+if(not default_font):
+	default_font='simhei.ttf'
+else:
+	default_font=default_font[0]
 def resize_by_ratio(img,size_ratio,resampling=Image.LANCZOS):
 	w,h=img.size
 	w,h=int(w*size_ratio),int(h*size_ratio)
@@ -620,7 +624,7 @@ def txt2im_emoji(text,font=None,fontsize=0,fill=(0,0,0,255),bg=(255,255,255,0),f
 	t=list(t)
 	for i in range(len(t)):
 		o=ord(t[i])
-		if(((0x1f000<=o)and(o<=0x1f98b))or((0x266b<=o)and(o<=0x2b55))):
+		if(((0x1f000<=o)and(o<=0x1f98b))):
 			emojis.append((t[i],font.getsize(''.join(t[:i]))[0]))
 			t[i]='　'
 	t=''.join(t)
@@ -713,7 +717,7 @@ def txt2im_ml(text,font=None,fontsize=0,fill=(0,0,0,255),bg=(255,255,255,0),widt
 			##print(i,o)
 			if((0xfe00<=o)and(o<=0xfe0f)):
 				continue
-			if(((0x1f000<=o)and(o<=0x1f98b))or((0x266b<=o)and(o<=0x2b55))):
+			if(((0x1f000<=o)and(o<=0x1f98b))):
 				emojis_.append((i,font.getsize(t)[0]))
 				t+='　'
 			else:

@@ -1,7 +1,7 @@
 #import mylogger			#因为logging设格式很烦就自己写了个
 #logger=mylogger.logger()
 #logger.openfh('bilibilimea')
-import lcg,myio,re,json,time,myhash,myjobs,traceback,math,random#,random_tri_pic
+import lcg,myio,re,json,time,myhash,traceback,math,random#,random_tri_pic
 #from workpathmanager import pathManager as pm	#workpathmanager是方便换电脑时候记录工作路径的模块
 from urllib.parse import urlencode,quote
 #from none_converters import bin2img,img2filename#none_converters是针对none-bot的各种杂项
@@ -12,15 +12,16 @@ from PIL import Image
 from os import path
 #logger.openfh(name='bilibilimea')
 #mainpth=pm().getpath(appname='bilibili_cache',session='mainpth')
-mainpth=path.join(path.dirname(__file__),'bilibili')
+mainpth=path.join(path.dirname(__file__),'bilibili_cache')
+#mainpth=path.join(path.dirname(__file__),'bilibili')
 cachepth=path.join(mainpth,'cache')
 print('bilibili cache pth',mainpth)
 
 debugging=__name__=='__main__'
-lcg_s=lcg.localCachingGeter(expiretime=10,proxies={},connection_throttle=(10,1),workpth=cachepth)		#lcg是带缓存的主要调用requests.get的模块
-lcg_l=lcg.localCachingGeter(expiretime=172800,connection_throttle=(5,1),proxies={},workpth=cachepth)
-lcg_m=lcg.localCachingGeter(expiretime=60,connection_throttle=(5,1),proxies={},workpth=cachepth)
-lcg_ml=lcg.localCachingGeter(expiretime=3600*2,connection_throttle=(5,1),proxies={},workpth=cachepth)
+lcg_s=lcg.localCachingGeter(expiretime=30,connection_throttle=(10,1),workpth=cachepth,proxies={})		#lcg是带缓存的主要调用requests.get的模块
+lcg_l=lcg.localCachingGeter(expiretime=172800,connection_throttle=(5,2),workpth=cachepth,proxies={})
+lcg_m=lcg.localCachingGeter(expiretime=60,connection_throttle=(5,2),workpth=cachepth,proxies={})
+lcg_ml=lcg.localCachingGeter(expiretime=3600*2,connection_throttle=(5,2),workpth=cachepth,proxies={})
 
 throttles=[]
 throttles.append(timer.throttle(2,5))
@@ -260,7 +261,7 @@ class monitor_live:		#监控开播
 		
 def get_username_by_uid(uid):
 	url=r'https://space.bilibili.com/%s/#/'%uid
-	h=lcg_l.gettext(url,proxies={})
+	h=lcg_l.gettext(url)
 	title=re.findall(r'<title>(.+?)</title>',h)[0]
 	name=re.findall(r'(.+)的个人空间',title)[0]
 	return name
@@ -321,20 +322,20 @@ def illustrate_live_result(result,prev_pic='preview_pic'):
 	ret=renderer.render()
 	live_result_illust_cache[cache_id]=ret
 	return ret
-def get_avatar_by_uid(uid):
+def get_avatar_by_uid(uid,acceptable_time=3600*24):
 	url=r'https://api.bilibili.com/x/space/acc/info?mid=%s&jsonp=jsonp'%uid
 	rurl=r'https://space.bilibili.com/%s'%uid
 	#j=json.loads(lcg_ml.gettext(url,headerex={"Referer":rurl}))['data']
-	j=get_user_info_by_uid(uid)
+	j=get_user_info_by_uid(uid,acceptable_time=acceptable_time)
 	avatar=j['face']
 	try:
-		avatar=lcg_l.get_image(avatar,headerex={"Referer":rurl},proxies={})
+		avatar=lcg_l.get_image(avatar,headerex={"Referer":rurl})
 	except Exception as e:
 		avatar=Image.new("RGB",(52,52),(255,255,255))
 	return avatar
-def get_live_info(live_id):
+def get_live_info(live_id,getter=lcg_s):
 	api_url=r'https://api.live.bilibili.com/room/v1/Room/get_info?room_id=%s&from=room'
-	result=lcg_s.gettext(api_url%live_id,proxies={})	#开播信息
+	result=getter.gettext(api_url%live_id)	#开播信息
 	result=json.loads(result)
 	if(result['msg']!='ok'):
 		return None
@@ -401,10 +402,8 @@ def get_user_info_by_uid(uid,acceptable_time=300):
 		ret.update(get_info())
 	except Exception as e:
 		print('get info error')
-	try:
-		ret.update(get_follow_stat())
-	except Exception:
-		pass
+	
+	ret.update(get_follow_stat())
 	try:
 		ret.update(get_room_info_old())
 	except Exception as e:
@@ -825,4 +824,13 @@ def get_dynamic_id(data):
 		dyid='d%s'%card['item']['rp_id']
 		return dyid
 if(__name__=='__main__'):
-	print(get_gift_pic_by_name('小心心'))
+	#j=get_live_info(12845193)
+	#myio.dumpjson(path.join(mainpth,'temp.json'),j)
+	#print(get_user_info_by_uid(1514013))
+	#illust_user_by_uid(1514013).show()
+	
+	uid=1514013
+	dynamics=get_dynamic_cards(uid)
+	for i in dynamics:
+		print(i)
+		illust_dynamic(i).show()
