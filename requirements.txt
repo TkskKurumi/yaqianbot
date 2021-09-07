@@ -5,5 +5,9 @@ pillow
 chardet
 jieba
 aiocqhttp
-python-opencv
+opencv-python
 annoy
+schedule
+py-cpuinfo
+psutil
+qrcode
