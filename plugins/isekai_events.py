@@ -263,7 +263,10 @@ class event_forest_fire(event):
         if(player.location!='森林'):
             mes.append("听说大森林着火了，生活在其中的居民四处逃亡，很可怜，但%s不在森林，没事"%player.name)
         else:
-            mes.append("森林，%s的家园燃起熊熊大火"%player.name)
+            if(player.species=='精灵'):
+                mes.append("森林，%s的家园燃起熊熊大火"%player.name)
+            else:
+                mes.append('森林燃起熊熊大火')
             hp_cost=player.hp/2
             player.hp-=hp_cost
             mes.append("%s侥幸逃生，HP减少%.1f"%(player.name,hp_cost))
