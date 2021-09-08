@@ -386,3 +386,7 @@ else:
     #disaster events
     event_forest_fire()
     event_maou_massacre()
+    #school events
+    event_enter_school()
+    event_graduate()
+    event_study()
