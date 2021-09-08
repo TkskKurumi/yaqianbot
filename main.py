@@ -1,5 +1,6 @@
 from bot_backend import my_load_plugin,running,run,add_su
 from os import sys,path
+from utils import simple_arg_parser
 sys.path.append(path.dirname(__file__))
 sys.path.append(path.join(path.dirname(__file__),'plugins'))
 sys.path.append(path.join(path.dirname(__file__),'utils'))
@@ -19,5 +20,8 @@ for i in ['plg_admin','plg_group',
 #"plg_jianse"
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
+args=sys.argv[1:]
+args=simple_arg_parser.parse_args(args)
 add_su(402254524)
-run()
+port=args.get('port') or args.get('p') or 8008
+run(port)
