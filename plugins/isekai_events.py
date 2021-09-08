@@ -119,9 +119,10 @@ class event_recover_hp(event):
     def encounter(self,player):
         mes=[]
         name=player.name
-        hp_recover=min(player.lvl/2,1)*((50-player.hp)**0.3)
+        hp_recover=min(player.lvl/2,1)*((50-player.hp)**0.5+5)
         rnd=(random.random()*0.7+0.15)
         hp_recover*=rnd
+        hp_recover=min(hp_recover,50-player.hp)
         player.hp+=hp_recover
         if(rnd>0.5):
             mes.append("%s喝了口治疗药，恢复了%.1f HP"%(name,hp_recover))
