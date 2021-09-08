@@ -113,7 +113,9 @@ class event_recover_hp(event):
     def calc_priority(self,player):
         if(player.hp>49):
             return impossible
-        return f_calc_priority(player.hp/30)
+        if(player.location=='学校'):
+            return f_calc_priority((player.hp-7)/30,prior)
+        return f_calc_priority((player.hp-7)/30)
     def encounter(self,player):
         mes=[]
         name=player.name
@@ -391,9 +393,55 @@ class event_SIF(event):
         player.status['already_SIF']=True
         mes=[]
         mes=['学校里有一个同学成立了学园偶像部']
-
+        if(self.gender=='女性' and random.random()<0.5):
+            player.status['学园偶像']=True
+            mes.append("%s成为了学园偶像☆")
+            az="Pop Pin μ Lie La Party Glow Aqua Ours Saint Snow Rise Sun Dream"
+            az+=" Vivid Pastel Pallete Rose Furan Saga 48 AKM XQC48"
+            az=az.split()
+            group_name=" ".join(random.sample(az,4))
+            mes.append("你们的组合叫%s"%group_name)
         return mes
+#SIF events
+class event_SIF_practice(event):
+    def __init__(self):
+        super().__init__(name='学园偶像练习')
+    def calc_priority(self, player):
+        if('学园偶像' not in player.status):
+            return impossible
+        if(player.location!='学校'):
+            return impossible
+        return f_calc_priority(0.5,prior)
+    def encounter(self,player):
+        mes=[]
+        nm=player.name
+        if(random.random()<0.3):
+            mes.append("%s正在练习跳舞"%nm)
+        elif(random.random()<0.5):
+            mes.append("%s正在练习唱歌"%nm)
+        else:
+            mes.append("%s尝试变得kira kira"%nm)
+        return mes
+class event_SIF_live(event):
+    def __init__(self):
+        super().__init__(name='学园偶像live')
 
+    def calc_priority(self, player):
+        if('学园偶像' not in player.status):
+            return impossible
+        if(player.location!='学校'):
+            return impossible
+        return f_calc_priority(0.8,prior)
+    def encounter(self,player):
+        mes=[]
+        nm=player.name
+        if(random.random()<0.3):
+            mes.append("你们的live很成功")
+        elif(random.random()<0.5):
+            mes.append("你们的live很失败，粉丝说“总有一天我会让这里座无虚席！”")
+        else:
+            mes.append("Live举办的那天下雨了")
+        return mes
 #follow maou events
 class event_invading(event):
     def __init__(self):
@@ -489,3 +537,7 @@ else:
 
     #succubus events
     event_succubus_daily()
+    
+    #SIF events
+    event_SIF_live()
+    event_SIF_practice()
