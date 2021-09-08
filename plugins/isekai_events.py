@@ -287,15 +287,15 @@ class event_maou_massacre(event):
             return f_calc_priority(4,prior)
         return super().calc_priority(player)
     def encounter(self,player):
-        if(player.lvl<2):
+        '''if(player.lvl<2):
             enter=0
         elif(player.lvl<3.5):
             enter=0.01
         elif(player.lvl<5):
             enter=0.4
         else:
-            enter=0.9
-        if(random.random()<enter):
+            enter=0.9'''
+        if(player.win_by_lvl(3)):
             accept=random.random()<0.5
             if(accept):
                 mes=[]
