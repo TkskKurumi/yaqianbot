@@ -315,6 +315,7 @@ class event_enter_school(event):
         mes.append("%s从%s来到学校"%(player.name,prev_loc))
         player.location='学校'
         pass
+        return mes
 class event_graduate(event):
     def __init__(self):
         super().__init__(name='学校毕业')
