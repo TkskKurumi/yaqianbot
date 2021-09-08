@@ -23,5 +23,7 @@ for i in ['plg_admin','plg_group',
 args=sys.argv[1:]
 args=simple_arg_parser.parse_args(args)
 add_su(402254524)
+print(args)
 port=args.get('port') or args.get('p') or 8008
+print('port =',port)
 run(port)
