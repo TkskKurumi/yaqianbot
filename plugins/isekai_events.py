@@ -306,9 +306,9 @@ class event_enter_school(event):
         if(player.yearold>10 or player.yearold<5.6):
             return impossible
         if(player.species=='人类'):
-            return f_calc_priority(1.1)
+            return f_calc_priority(1.3)
         else:
-            return f_calc_priority(1.5)
+            return f_calc_priority(1.8)
     def encounter(self,player):
         prev_loc=player.location
         mes=[]
