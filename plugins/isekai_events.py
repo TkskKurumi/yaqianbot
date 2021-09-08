@@ -425,6 +425,8 @@ class event_succubus_daily(event):
     def __init__(self):
         super().__init__("魅魔嗯喵")
     def calc_priority(self, player):
+        if(player.species!='魅魔'):
+            return impossible
         if(player.status.get("师从魔王")):
             return f_calc_priority(1.3,prior)
         return f_calc_priority(1)
