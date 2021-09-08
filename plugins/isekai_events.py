@@ -262,7 +262,7 @@ class event_neko_prpr(event_filter_neko):
 #disaster events
 class event_forest_fire(event):
     def __init__(self):
-        super().__init__(name='森林大火',rarity=3.6)
+        super().__init__(name='森林大火',rarity=4)
     def encounter(self,player):
         mes=[]
         if(player.location!='森林'):
@@ -281,10 +281,10 @@ class event_forest_fire(event):
 
 class event_maou_massacre(event):
     def __init__(self):
-        super().__init__(name="魔王大屠杀",rarity=4)
+        super().__init__(name="魔王大屠杀",rarity=4.2)
     def calc_priority(self, player):
         if(player.location=='学校'):
-            return f_calc_priority(4,prior)
+            return f_calc_priority(4.2,prior)
         return super().calc_priority(player)
     def encounter(self,player):
         '''if(player.lvl<2):
@@ -295,7 +295,7 @@ class event_maou_massacre(event):
             enter=0.4
         else:
             enter=0.9'''
-        if(player.win_by_lvl(3)):
+        if(player.win_by_lvl(3.5)):
             accept=random.random()<0.5
             if(accept):
                 mes=[]
