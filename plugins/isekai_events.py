@@ -2,7 +2,8 @@ import random
 events=dict()
 inevitable=float('-inf')
 impossible=float('inf')
-prior=-10
+prior=-5
+
 def f_calc_priority(rarity,delta=0):
     return random.normalvariate(rarity,rarity**0.5)+delta
     
@@ -18,7 +19,7 @@ class event:
         events[name]=self
     def judge_possible(self,player):
         return True
-    def calc_priority(self,userinfo):
+    def calc_priority(self,player):
         return random.normalvariate(self.rarity,self.rarity**0.5)+self.priority_delta
     def try_encounter(self,userinfo):
         return self.calc_priority(userinfo),self
@@ -276,13 +277,72 @@ class event_forest_fire(event):
 class event_maou_massacre(event):
     def __init__(self):
         super().__init__(name="魔王大屠杀",rarity=3.8)
+    def calc_priority(self, player):
+        if(player.location=='学校'):
+            return f_calc_priority(3.8,prior)
+        return super().calc_priority(player)
     def encounter(self,player):
-        player.hp=0
-        mes=[]
-        mes.append("魔王宣言要统治世界")
-        mes.append("经过%s时，魔王军烧杀抢掠"%player.location)
+        if(random.random()<0.5):
+            player.hp=0
+            mes=[]
+            mes.append("魔王宣言要统治世界")
+            mes.append("经过%s时，魔王军烧杀抢掠"%player.location)
+        else:
+            hp_cost=player.hp/2
+            mes=[]
+            mes.append("魔王宣言要统治世界")
+            mes.append("经过%s时，魔王军烧杀抢掠"%player.location)
+            mes.append("%s死里逃生，降低了%.1fhp"%hp_cost)
+            player.hp-=hp_cost
         return mes
 
+#school events
+class event_enter_school(event):
+    def __init__(self):
+        super().__init__(name='进入学校')
+    def calc_priority(self, player):
+        if(player.location=='学校'):
+            return impossible
+        if(player.yearold>10 or player.yearold<5.6):
+            return impossible
+        if(player.species=='人类'):
+            return f_calc_priority(1.1)
+        else:
+            return f_calc_priority(1.5)
+    def encounter(self,player):
+        prev_loc=player.location
+        mes=[]
+        mes.append("%s从%s来到学校"%(player.name,prev_loc))
+        player.location='学校'
+        pass
+class event_graduate(event):
+    def __init__(self):
+        super().__init__(name='学校毕业')
+    def calc_priority(self, player):
+        if(player.location!='学校'):
+            return impossible
+        if(player.yearold>16):
+            return inevitable
+        return f_calc_priority(4)
+    def encounter(self,player):
+        mes=[]
+        mes.append("%s从学校毕业回到了家乡%s"%(player.name,player.born_location))
+        player.location=player.born_location
+        return mes
+class event_study:
+    def __init__(self):
+        super().__init__(name='学校学习')
+    def calc_priority(self, player):
+        if(player.location!='学校'):
+            return impossible
+        else:
+            return f_calc_priority(1,prior)
+    def encounter(self,player):
+        mes=[]
+        lvl_earn=0.2+0.3**player.lvl
+        player.lvl+=lvl_earn
+        mes.append("%s在学校学习战斗，能力值提升了%.1f"%lvl_earn)
+        return mes
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)

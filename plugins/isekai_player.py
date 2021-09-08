@@ -6,13 +6,14 @@ class player_inbornskill:
 
 
 class player_status:
-    def __init__(self,name,gender,species,yearold,lvl=1,status=None,skills=None,location='森林'):
+    def __init__(self,name,gender,species,yearold,lvl=1,status=None,skills=None,location='森林',born_location=None):
         self.hp=50
         self.lvl=1
         self.name=name
         self.species=species
         self.yearold=yearold
         self.location=location
+        self.born_location=born_location or location
         self.gender=gender
         self.old_speed=1
         if(skills is None):
