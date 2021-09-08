@@ -21,7 +21,7 @@ for i in ['plg_admin','plg_group',
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
 args=sys.argv[1:]
-args=simple_arg_parser.parse_args(args)
+args=simple_arg_parser.parse_args(' '.join(args))
 add_su(402254524)
 print(args)
 port=args.get('port') or args.get('p') or 8008
