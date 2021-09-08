@@ -329,7 +329,7 @@ class event_graduate(event):
         mes.append("%s从学校毕业回到了家乡%s"%(player.name,player.born_location))
         player.location=player.born_location
         return mes
-class event_study:
+class event_study(event):
     def __init__(self):
         super().__init__(name='学校学习')
     def calc_priority(self, player):
