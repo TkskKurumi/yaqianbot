@@ -1,4 +1,4 @@
-
+import random
 class player_inbornskill:
     #base class, nothing is implemented
     pass
@@ -51,3 +51,6 @@ class player_status:
                 return '猫郎'
         else:
             return self.gender+self.species
+    def win_by_lvl(self,lvl):
+        win_rate=1/(1+3**(lvl-self.lvl))
+        return random.random()<win_rate

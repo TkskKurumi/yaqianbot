@@ -274,6 +274,7 @@ class event_forest_fire(event):
             mes.append("%s移居到城镇"%player.name)
             player.location='城镇'
         return mes
+
 class event_maou_massacre(event):
     def __init__(self):
         super().__init__(name="魔王大屠杀",rarity=4)
@@ -282,6 +283,37 @@ class event_maou_massacre(event):
             return f_calc_priority(4,prior)
         return super().calc_priority(player)
     def encounter(self,player):
+        if(player.lvl<2):
+            enter=0
+        elif(player.lvl<3.5):
+            enter=0.01
+        elif(player.lvl<5):
+            enter=0.4
+        else:
+            enter=0.9
+        if(random.random()<enter):
+            accept=random.random()<0.5
+            if(accept):
+                mes=[]
+                lvl_earn=player.lvl*0.4+1
+                mes.append("魔王邀请%s加入魔王军，%s同意了"%(player.name,player.name))
+                if(player.species=='精灵' and player.gender=='女性'):
+                    player.species='魅魔'
+                    mes.append("%s变成了魅魔，hso"%player.name)
+                else:
+                    mes.append("魔王对%s使用了增幅魔法"%player.name)
+                mes.append("能力值提升了%.1f"%lvl_earn)
+                player.status['师从魔王']=True
+                return mes
+            else:
+                mes=[]
+                mes.append("魔王邀请%s加入魔王军，%s拒绝了"%(player.name,player.name))
+                if(player.win_by_lvl(5)):
+                    mes.append("%s暂时击退了魔王"%player.name)
+                else:
+                    player.hp=0
+                    mes.append("%s被魔王一怒之下虐成了渣"%player.name)
+                return mes
         if(random.random()<0.5):
             player.hp=0
             mes=[]
@@ -361,6 +393,45 @@ class event_SIF(event):
 
         return mes
 
+#follow maou events
+class event_invading(event):
+    def __init__(self):
+        super().__init__("跟魔王打劫")
+    def calc_priority(self, player):
+        if(player.status.get("师从魔王")):
+            return f_calc_priority(1.1,prior)
+        return impossible
+    def encounter(self,player):
+        mes=['%s跟着魔王烧杀抢掠，带恶人'%player.name]
+        return mes
+class event_encounter_hero(event):
+    def __init__(self):
+        super().__init__("师从魔王-被勇者打")
+    def calc_priority(self, player):
+        if(player.status.get("师从魔王")):
+            return f_calc_priority(1.3,prior)
+        return impossible
+    def encounter(self,player):
+        mes=["勇者要讨伐魔王军"]
+        if(player.win_by_lvl(4)):
+            mes.append("%s但他太菜了")
+        else:
+            player.hp=0
+            mes.append("他好强")
+        return mes
+
+#succubus events
+class event_succubus_daily(event):
+    def __init__(self):
+        super().__init__("魅魔嗯喵")
+    def calc_priority(self, player):
+        if(player.status.get("师从魔王")):
+            return f_calc_priority(1.3,prior)
+        return f_calc_priority(1)
+    def encounter(self,player):
+        mes=[]
+        mes.append("魅魔%s嗯喵嗯喵HSO！！"%player.name)
+        return mes
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)
@@ -409,3 +480,9 @@ else:
     event_graduate()
     event_study()
     event_SIF()
+    #maou envents
+    event_invading()
+    event_encounter_hero()
+
+    #succubus events
+    event_succubus_daily()
