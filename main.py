@@ -16,7 +16,8 @@ for i in ['plg_admin','plg_group',
 "plg_bilisub",
 "plg_customchat",
 "plg_strgen",
-"plg_wyy"
+"plg_wyy",
+"plg_isekai"
 #"plg_jianse"
 ]:
 	my_load_plugin(path.join(dn,'plugins',i))
