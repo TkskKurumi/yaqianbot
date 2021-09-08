@@ -413,8 +413,8 @@ class event_encounter_hero(event):
         return impossible
     def encounter(self,player):
         mes=["勇者要讨伐魔王军"]
-        if(player.win_by_lvl(4)):
-            mes.append("%s但他太菜了")
+        if(player.win_by_lvl(4.7)):
+            mes.append("但他太菜了")
         else:
             player.hp=0
             mes.append("他好强")
