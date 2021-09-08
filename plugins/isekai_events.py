@@ -393,7 +393,7 @@ class event_SIF(event):
         player.status['already_SIF']=True
         mes=[]
         mes=['学校里有一个同学成立了学园偶像部']
-        if(self.gender=='女性' and random.random()<0.5):
+        if(player.gender=='女性' and random.random()<0.5):
             player.status['学园偶像']=True
             mes.append("%s成为了学园偶像☆")
             az="Pop Pin μ Lie La Party Glow Aqua Ours Saint Snow Rise Sun Dream"
