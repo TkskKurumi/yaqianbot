@@ -50,7 +50,7 @@ def cmd_isekai(ctx):
         if(not player.is_alive()):
             mes.append("%s死了"%name)
             break
-        if(len(mes)-reported>20):
+        if(len(mes)-reported>13):
             
             mes.extend(player.report_status())
             reported=len(mes)

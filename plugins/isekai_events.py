@@ -276,10 +276,10 @@ class event_forest_fire(event):
         return mes
 class event_maou_massacre(event):
     def __init__(self):
-        super().__init__(name="魔王大屠杀",rarity=3.8)
+        super().__init__(name="魔王大屠杀",rarity=4)
     def calc_priority(self, player):
         if(player.location=='学校'):
-            return f_calc_priority(3.8,prior)
+            return f_calc_priority(4,prior)
         return super().calc_priority(player)
     def encounter(self,player):
         if(random.random()<0.5):
@@ -344,6 +344,23 @@ class event_study(event):
         player.lvl+=lvl_earn
         mes.append("%s在学校学习战斗，能力值提升了%.1f"%(player.name,lvl_earn))
         return mes
+class event_SIF(event):
+    def __init__(self):
+        super().__init__(name='有人想要成立学园偶像')
+    def calc_priority(self, player):
+        if('already_SIF' in player.status):
+            return impossible
+        elif(player.location!='学校'):
+            return impossible
+        else:
+            return f_calc_priority(1.2,prior)
+    def encounter(self,player):
+        player.status['already_SIF']=True
+        mes=[]
+        mes=['学校里有一个同学成立了学园偶像部']
+
+        return mes
+
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)
@@ -391,3 +408,4 @@ else:
     event_enter_school()
     event_graduate()
     event_study()
+    event_SIF()
