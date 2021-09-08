@@ -292,7 +292,7 @@ class event_maou_massacre(event):
             mes=[]
             mes.append("魔王宣言要统治世界")
             mes.append("经过%s时，魔王军烧杀抢掠"%player.location)
-            mes.append("%s死里逃生，降低了%.1fhp"%hp_cost)
+            mes.append("%s死里逃生，降低了%.1fhp"%(player.name,hp_cost))
             player.hp-=hp_cost
         return mes
 
