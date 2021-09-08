@@ -342,7 +342,7 @@ class event_study(event):
         mes=[]
         lvl_earn=0.2+0.3**player.lvl
         player.lvl+=lvl_earn
-        mes.append("%s在学校学习战斗，能力值提升了%.1f"%lvl_earn)
+        mes.append("%s在学校学习战斗，能力值提升了%.1f"%(player.name,lvl_earn))
         return mes
 if(__name__=='__main__'):
     event('A',rarity=1)
