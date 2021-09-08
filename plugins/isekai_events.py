@@ -100,6 +100,7 @@ class event_farm_goblin(event):
         hp=player.lose_hp(hp_cost)
         lvl_earn=0.7**(player.lvl-0.5)
         player.lvl+=lvl_earn
+        mes.append("%s去打哥布林"%name)
         if(hp==0):
             mes.append("%s真是杂鱼，居然哥布林都打不过"%(name))
             return mes
