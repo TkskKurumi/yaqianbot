@@ -114,8 +114,8 @@ class event_recover_hp(event):
         if(player.hp>49):
             return impossible
         if(player.location=='学校'):
-            return f_calc_priority((player.hp-7)/30,prior)
-        return f_calc_priority((player.hp-7)/30)
+            return f_calc_priority(player.hp/50,prior)
+        return f_calc_priority(player.hp/50)
     def encounter(self,player):
         mes=[]
         name=player.name
