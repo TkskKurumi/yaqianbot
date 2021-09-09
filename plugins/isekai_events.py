@@ -7,8 +7,7 @@ prior=-5
 def f_calc_priority(rarity,delta=0):
     return random.normalvariate(rarity,rarity**0.5)+delta
     
-    
-    
+
 #general events
 class event:
     def __init__(self,name,rarity=1,priority_delta=0):
@@ -33,6 +32,8 @@ class event_born(event):
     def __init__(self):
         super().__init__('出生')
     def calc_priority(self,player):
+        if(player.species=='史莱姆'):
+            return impossible
         if(player.yearold==0):
             return inevitable
         else:
@@ -47,13 +48,48 @@ class event_born(event):
         mes.append('出生在%s'%player.location)
         player.get_old()
         return mes
-
+class event_old_disease(event):
+    def __init__(self):
+        super().__init__("老年病")
+    def calc_priority(self,player):
+        if(player.species=='魅魔' or player.species=='史莱姆'):
+            return impossible
+        if(player.yearold<50):
+            return impossible
+        if(player.species=="精灵"):
+            if(player.yearold<100):
+                return impossible
+            p=5-(player.yearold-100)/20 #when 180 yearold,p become 1
+        else:
+            p=5-(player.yearold-50)/5   #when 70 yearold, p become 1
+        return f_calc_priority(max(p,0.1))
+    def encounter(self,player):
+        mes=[]
+        alive=player.win_by_lvl(3)
+        if(alive):
+            if(random.random()<0.3):
+                mes.append("%s感到免疫力在下降"%player.name)
+            elif(random.random()<0.5):
+                mes.append("%s感到筋骨没有以前灵活了"%player.name)
+            else:
+                mes.append("%s感到牙齿没有以前好了"%player.name)
+        else:
+            player.hp=0
+            if(random.random()<0.3):
+                mes.append("%s摔了一跤撞到了后脑勺..")
+            elif(random.random()<0.5):
+                mes.append("%s得了严重的肺病")
+            else:
+                mes.append("%s突发恶疾！！")
+        return mes
 class event_farm_slime(event):
     #刷小怪
     def __init__(self):
         super().__init__(name='打小怪',rarity=1)
     def calc_priority(self,player):
         if(player.location=='城镇'):
+            return impossible
+        if(player.species=='史莱姆'):
             return impossible
         if(player.yearold<11):
             return f_calc_priority(3)
@@ -216,9 +252,12 @@ class event_elf_daily(event):
         name=player.name
         lvl_earn=0.3**player.lvl
         player.lvl+=lvl_earn
-        mes.append("%s在精灵村寨生活，能力值提升了%.1f"%(name,lvl_earn))
+        if(lvl_earn>0.1):
+            mes.append("%s在精灵村寨日常，能力值提升了%.1f"%(name,lvl_earn))
+        else:
+            mes.append("%s在精灵村过着与世无争的生活"%name)
         return mes
-        
+
         
 #neko events
 class event_neko_catch_fish(event):
@@ -281,10 +320,15 @@ class event_forest_fire(event):
 
 class event_maou_massacre(event):
     def __init__(self):
-        super().__init__(name="魔王大屠杀",rarity=4.2)
+        super().__init__(name="魔王大屠杀",rarity=4.4)
     def calc_priority(self, player):
+        if(player.status.get('职业')=='魔王' or player.status.get('师从魔王')):
+            return impossible
+        if(player.status.get('职业')=='魔王军'):
+            return impossible
         if(player.location=='学校'):
-            return f_calc_priority(4.2,prior)
+            return f_calc_priority(4.4,prior)
+        
         return super().calc_priority(player)
     def encounter(self,player):
         '''if(player.lvl<2):
@@ -308,15 +352,24 @@ class event_maou_massacre(event):
                     mes.append("魔王对%s使用了增幅魔法"%player.name)
                 mes.append("能力值提升了%.1f"%lvl_earn)
                 player.status['师从魔王']=True
+                player.status['职业']='魔王军'
+                player.location='魔王领地'
                 return mes
             else:
                 mes=[]
                 mes.append("魔王邀请%s加入魔王军，%s拒绝了"%(player.name,player.name))
-                if(player.win_by_lvl(5)):
-                    mes.append("%s暂时击退了魔王"%player.name)
+                if(player.win_by_lvl(8)):
+                    mes.append("%s杀死了魔王"%player.name)
+                    mes.append("魔王的随从们看到这一幕，纷纷认%s为新的老大")
+                    mes.append("%s成为了魔王!?"%player.name)
+                    player.status['职业']='魔王'
+                    player.location='魔王领地'
                 else:
-                    player.hp=0
-                    mes.append("%s被魔王一怒之下虐成了渣"%player.name)
+                    if(player.win_by_lvl(5)):
+                        mes.append("%s暂时击退了魔王"%player.name)
+                    else:
+                        player.hp=0
+                        mes.append("%s被魔王一怒之下虐成了渣"%player.name)
                 return mes
         if(random.random()<0.5):
             player.hp=0
@@ -448,7 +501,9 @@ class event_invading(event):
     def __init__(self):
         super().__init__("跟魔王打劫")
     def calc_priority(self, player):
-        if(player.status.get("师从魔王")):
+        if(player.status.get("职业")!="魔王"):
+            return impossible
+        if(player.status.get("职业")!="魔王军"):
             return f_calc_priority(1.1,prior)
         return impossible
     def encounter(self,player):
@@ -458,8 +513,8 @@ class event_encounter_hero(event):
     def __init__(self):
         super().__init__("师从魔王-被勇者打")
     def calc_priority(self, player):
-        if(player.status.get("师从魔王")):
-            return f_calc_priority(1.3,prior)
+        if(player.status.get("职业")=="魔王军"):
+            return f_calc_priority(1.1,prior)
         return impossible
     def encounter(self,player):
         mes=["勇者要讨伐魔王军"]
@@ -469,7 +524,66 @@ class event_encounter_hero(event):
             player.hp=0
             mes.append("他好强")
         return mes
-
+class event_maou_fighting_championship(event):
+    def __init__(self):
+        super().__init__("魔王眷属武斗会")
+    def calc_priority(self,player):
+        if(player.status.get("职业")!='魔王军'):
+            return impossible
+        return f_calc_priority(1.4,prior)
+    def encounter(self,player):
+        mes=[]
+        mes.append("魔王军是个崇尚武力的地方")
+        mes.append("举办了无规则武斗大会")
+        if(not player.win_by_lvl(2)):
+            mes.append("%s这么弱的菜鸡在武斗会上被魔王军其他人杀死了"%player.name)
+            player.hp=0
+            return mes
+        elif(player.win_by_lvl(8)):
+            mes.append("%s在其中脱颖而出"%player.name)
+        elif(player.win_by_lvl(4)):
+            mes.append("%s表现优异"%player.name)
+        else:
+            mes.append("%s好菜，打不过别的魔王军成员"%player.name)
+        lvl_earn=0.4**(max(player.lvl-3.5,1))
+        lvl_earn*=random.random()+0.3
+        player.lvl+=lvl_earn
+        mes.append("%s的能力值提升了%.1f"%(player.name,lvl_earn))
+        return mes
+class event_maou_decide_relation(event):
+    def __init__(self):
+        super().__init__("魔王决定友好性")
+    def calc_priority(self,player):
+        if(player.status.get("职业")!='魔王'):
+            return impossible
+        if("魔王友好性" in player.status):
+            return impossible
+        return inevitable
+    def encounter(self,player):
+        mes=[]
+        if(random.random()<0.7):
+            player.status['魔王友好性']="友好"
+            mes.append("%s决定，从今以后，魔王军势力要和大家友好相处"%player.name)
+        else:
+            player.status['魔王友好性']="邪恶"
+            mes.append("%s感到带领着魔王军可以所向披靡为所欲为了"%player.name)
+        return mes
+class event_maou_challenged_by_soldier(event):      
+    def __init__(self):
+        super().__init__("魔王手下挑战")
+    def calc_priority(self,player):
+        if(player.status.get("职业")!='魔王'):
+            return impossible
+        return f_calc_priority(1.4,prior)
+    def encounter(self,player):
+        mes=[]
+        mes.append("有人觉得你不配做魔王、想要篡位、发起了挑战")
+        if(player.win_by_lvl(6)):
+            mes.append("他太天真了，根本打不过你")
+        else:
+            player.hp=0
+            mes.append("他说的对。。。")
+        return mes
 #succubus events
 class event_succubus_daily(event):
     def __init__(self):
@@ -477,12 +591,69 @@ class event_succubus_daily(event):
     def calc_priority(self, player):
         if(player.species!='魅魔'):
             return impossible
-        if(player.status.get("师从魔王")):
+        if(player.status.get("职业")=='魔王军'):
             return f_calc_priority(1.3,prior)
+        return f_calc_priority(0.5)
+    def encounter(self,player):
+        mes=[]
+        name=player.name
+        mes.append("魅魔%s嗯喵嗯喵"%player.name)
+        lvl_earn=0
+        if(random.random()<0.1):
+            mes.append("%s榨干了勇者，吸收了勇者的能力"%name)
+            lvl_earn+=0.9**player.lvl
+        if(lvl_earn>0.1):
+            mes.append("能力值提升了%.1f"%lvl_earn)
+        return mes
+
+#slime events:
+class event_slime_born(event):
+    def __init__(self):
+        super().__init__('史莱姆出生')
+    def calc_priority(self,player):
+        if(player.species!='史莱姆'):
+            return impossible
+        if('史莱姆出生' in player.status):
+            return impossible
+        return inevitable
+    def encounter(self,player):
+        mes=[]
+        mes.append("%s穿越到了异世界"%player.name)
+        mes.append("你作为史莱姆重生了")
+        player.status['史莱姆出生']=True
+        return mes
+class event_slime_fight(event):
+    def __init__(self):
+        super().__init__("史莱姆战斗")
+    def calc_priority(self,player):
+        if(player.species!='史莱姆'):
+            return impossible
         return f_calc_priority(1)
     def encounter(self,player):
         mes=[]
-        mes.append("魅魔%s嗯喵嗯喵HSO！！"%player.name)
+        name=player.name
+        if(random.random()<0.3):
+            mes.append("有一队冒险者来森林里收集史莱姆素材")
+            if(player.win_by_lvl(2)):
+                mes.append("他们没有料到%s是一只很强的史莱姆"%player.name)
+                mes.append("他们被%s击退了"%name)
+                lvl_earn=0.5**self.lvl
+                mes.append("能力值提升了%.1f"%lvl_earn)
+            else:
+                mes.append("他们不怀好意地靠近你")
+                player.hp=0
+        else:#(random.random()<0.5):
+            mes.append("%s驱动着圆滚滚的史莱姆身体到处乱逛"%name)
+            mes.append("发现前面有一群哥布林")
+            if(player.win_by_lvl(2)):
+                mes.append("哥布林要打%s"%name)
+                mes.append("%s驱动圆滚滚的身体滚滚滚滚滚下了山，逃跑了")
+            elif(player.win_by_lvl(2)):
+                mes.append("哥布林没想到%s是个聪明的史莱姆"%name)
+                mes.append("打不过%s"%name)
+            else:
+                mes.append("你被装进了哥布林的热水锅里煮")
+                player.hp=0
         return mes
 if(__name__=='__main__'):
     event('A',rarity=1)
@@ -516,6 +687,7 @@ else:
     event_farm_goblin()
     event_recover_hp()
     event_child_play()
+    event_old_disease()
     #move place events
     event_goto_forest()
     #elf events
@@ -535,10 +707,16 @@ else:
     #maou envents
     event_invading()
     event_encounter_hero()
-
+    event_maou_fighting_championship()
+    event_maou_decide_relation()
+    event_maou_challenged_by_soldier()
     #succubus events
     event_succubus_daily()
     
     #SIF events
     event_SIF_live()
     event_SIF_practice()
+    
+    #slime events
+    event_slime_born()
+    event_slime_fight()
