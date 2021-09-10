@@ -48,7 +48,7 @@ class event_born(event):
         gender='' if player.gender=='无性' else player.gender
         mes.append('你是一位%s'%(player.refine_species()))
         mes.append('出生在%s'%player.location)
-        player.get_old()
+        
         return mes
 class event_old_disease(event):
     def __init__(self):
