@@ -1,0 +1,3 @@
+[submodule ".\\utils\\pilloWidget"]
+	path = .\\utils\\pilloWidget
+	url = https://github.com/TkskKurumi/pilloWidget.git
