@@ -35,7 +35,7 @@ class FakeAndroidChromeUA:
  
 headers = {
 	'User-Agent': FakeChromeUA.get_ua(),
-	'Accept-Encoding': 'gzip, deflate, sdch, br',
+	'Accept-Encoding': 'gzip, deflate, sdch',
 	'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
 	'Connection': 'keep-alive'
