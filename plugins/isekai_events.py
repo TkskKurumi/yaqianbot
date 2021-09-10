@@ -1,3 +1,5 @@
+if(__name__!='__main__'):
+    from bot_backend import *
 import random
 events=dict()
 inevitable=float('-inf')
@@ -6,7 +8,7 @@ prior=-5
 
 def f_calc_priority(rarity,delta=0):
     return random.normalvariate(rarity,rarity**0.5)+delta
-    
+
 
 #general events
 class event:
@@ -217,8 +219,30 @@ class event_goto_forest(event_newlocation):
         else:
             mes.append("%s来到了大森林"%player.name)
         return mes
-
-
+class event_ero_dungeon(event):
+    def __init__(self):
+        super().__init__(name='工口地牢',rarity=2.5)
+    def calc_priority(self, player):
+        if(player.location=='工口地牢'):
+            return impossible
+        if(player.yearold<12):
+            return impossible
+        return super().calc_priority(player)
+    def encounter(self,player):
+        mes=[]
+        name=player.name
+        mes.append("%s在森林深处散步")
+        mes.append("%s看到地上有个写着奇怪文字的石碑")
+        mes.append("靠近后，地上出现了一道门")
+        mes.append("%s想要走进去，但当刚刚触碰到门内的时候，%s感到天旋地转")
+        mes.append("当%s醒来时，发现自己在陌生的地方")
+        mes.append("在一个爱心型魔法阵的中央，石质的四壁地板天花板，不知道在哪里")
+        if(player.gender=='男性'):
+            player.gender='女性'
+            mes.append("而且变成了女孩子！！！")
+        player.location='工口地牢'
+        player.old_speed=0.01
+        return mes
 #female elf events
 class event_elf_raped(event):
     def __init__(self):
@@ -655,6 +679,10 @@ class event_slime_fight(event):
                 mes.append("你被装进了哥布林的热水锅里煮")
                 player.hp=0
         return mes
+
+#location ero dungeon events
+#
+
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)
