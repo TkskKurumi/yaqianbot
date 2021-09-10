@@ -6,6 +6,8 @@ if(__name__!='__main__'):
     import chat,pic2pic
     from horror_gif import horror_gif
     import pic2pic
+    from pilloWidget import widgets
+    from PIL import Image
 from glob import glob
 from os import path
 from datetime import datetime
@@ -15,7 +17,22 @@ from isekai_player import player_status
 import isekai_player,isekai_events
 import time
 
-
+def render_rt(mes):
+    _mes=[]
+    for i in mes:
+        if(isinstance(i,str)):
+            if(path.exists(i) and i[-3:] in 'jpg,png,bmp,gif'):
+                _mes.append(Image.open(i))
+                _mes.append('\n')
+            else:
+                _mes.append(i+'\n')
+        elif(isinstance(i,Image.Image)):
+            _mes.append(i)
+            _mes.append('\n')
+        else:
+            _mes.append(str(i)+'\n')
+    rich_text=widgets.richText(contents=_mes,width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255))
+    return rich_text.render()
 def choose_event(player):
     az=[]
     for name,inst in events.items():
