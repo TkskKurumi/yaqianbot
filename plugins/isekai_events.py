@@ -219,9 +219,9 @@ class event_goto_forest(event_newlocation):
         else:
             mes.append("%s来到了大森林"%player.name)
         return mes
-class event_ero_dungeon(event):
+class event_enter_ero_dungeon(event):
     def __init__(self):
-        super().__init__(name='工口地牢',rarity=2.5)
+        super().__init__(name='进入工口地牢',rarity=2.5)
     def calc_priority(self, player):
         if(player.location=='工口地牢'):
             return impossible
@@ -682,7 +682,23 @@ class event_slime_fight(event):
 
 #location ero dungeon events
 #
-
+class event_ero_dungeon(event):
+    def __init__(self):
+        super().__init__("工口地牢")
+    def calc_priority(self, player):
+        if(self.location!='工口地牢'):
+            return impossible
+        else:
+            return f_calc_priority(1,prior)
+    def encounter(self,player):
+        az=[]
+        mes=[]
+        stat_name=lambda n:"hidden-工口地牢visited-%s"%n
+        calcp=lambda n:impossible if (stat_name(n) in player.status) else f_calc_priority(1)
+        def level1():
+            nonlocal mes
+            player.status[stat_name('level1')]=True
+            
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)

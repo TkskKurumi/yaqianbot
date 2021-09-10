@@ -68,10 +68,14 @@ class player_status:
                 continue
             if(i in ['already_SIF']):
                 continue
+            if(i.startswith("hidden-")):
+                continue
             j=self.status[i]
             j=str(j)
-            if(j in 'TrueFalse'):
+            if(j in 'True'):
                 j=''
+            elif(j=='False'):
+                continue
             mes.append("  %s: %s"%(i,j))
         return mes
     def refine_species(self):
