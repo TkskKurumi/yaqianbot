@@ -710,7 +710,7 @@ class event_ero_dungeon(event):
         stat_name=lambda n:"hidden-工口地牢visited-%s"%n
         name=player.name
         _impossible=114514
-        calcp=lambda n:_impossible if (stat_name(n) in player.status) else f_calc_priority(1,prior)
+        calcp=lambda n:_impossible if (player.status.get(stat_name(n))) else f_calc_priority(1,prior)
         def level1():
             nonlocal mes
             player.status[stat_name('level1')]=True
