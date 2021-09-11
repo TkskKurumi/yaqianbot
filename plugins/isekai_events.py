@@ -219,31 +219,35 @@ class event_goto_forest(event_newlocation):
         else:
             mes.append("%s来到了大森林"%player.name)
         return mes
+
+achievement_transgender={"变身美少女":"在工口地牢里变成女孩子"}
 class event_enter_ero_dungeon(event):
     def __init__(self):
         super().__init__(name='进入工口地牢',rarity=2.5)
     def calc_priority(self, player):
         if(player.location=='工口地牢'):
             return impossible
-        if(player.yearold<12):
+        if(player.yearold<12 or player.yearold>40):
             return impossible
         return super().calc_priority(player)
     def encounter(self,player):
         mes=[]
         name=player.name
-        mes.append("%s在森林深处散步")
-        mes.append("%s看到地上有个写着奇怪文字的石碑")
+        mes.append("%s在森林深处散步"%name)
+        mes.append("%s看到地上有个写着奇怪文字的石碑"%name)
         mes.append("靠近后，地上出现了一道门")
-        mes.append("%s想要走进去，但当刚刚触碰到门内的时候，%s感到天旋地转")
-        mes.append("当%s醒来时，发现自己在陌生的地方")
+        mes.append("%s想要走进去，但当刚刚触碰到门内的时候，感到天旋地转"%name)
+        mes.append("当%s醒来时，发现自己在陌生的地方"%name)
         mes.append("在一个爱心型魔法阵的中央，石质的四壁地板天花板，不知道在哪里")
         if(player.gender=='男性'):
             player.gender='女性'
             mes.append("而且变成了女孩子！！！")
+            player.achievements.update(achievement_transgender)
         player.location='工口地牢'
         player.old_speed=0.01
         return mes
 #female elf events
+achievement_orc_slayer={"反本子剧情":"女精灵逆袭兽人"}
 class event_elf_raped(event):
     def __init__(self):
         super().__init__(name='精灵被嗯喵',rarity=1.5)
@@ -255,12 +259,16 @@ class event_elf_raped(event):
     def encounter(self,player):
         mes=[]
         mes.append("%s被兽人抓住了"%player.name)
-        hp=player.lose_hp(10)
-        if(hp==0):
-            mes.append("%s被关起来变成了兽人的RBQ，被雷普到死"%player.name)
+        if(player.win_by_lvl(5)):
+            mes.append("但是她把兽人都打爆了")
+            player.achievements.update(achievement_orc_slayer)
         else:
-            mes.append("%s被关起来嗯喵❤嗯喵喵❤喵喵呜呜❤"%player.name)
-            mes.append("掉了%.1fHP"%10)
+            hp=player.lose_hp(10*(1-player.win_rate_by_lvl(4)))
+            if(hp==0):
+                mes.append("%s被关起来变成了兽人的RBQ，被雷普到死"%player.name)
+            else:
+                mes.append("%s被关起来嗯喵❤嗯喵喵❤喵喵呜呜❤"%player.name)
+                mes.append("掉了%.1fHP"%10)
         return mes
         
 class event_elf_daily(event):
@@ -341,7 +349,7 @@ class event_forest_fire(event):
             mes.append("%s移居到城镇"%player.name)
             player.location='城镇'
         return mes
-
+achievement_beat_maou={"就这？":"杀死魔王"}
 class event_maou_massacre(event):
     def __init__(self):
         super().__init__(name="魔王大屠杀",rarity=4.4)
@@ -384,6 +392,7 @@ class event_maou_massacre(event):
                 mes.append("魔王邀请%s加入魔王军，%s拒绝了"%(player.name,player.name))
                 if(player.win_by_lvl(8)):
                     mes.append("%s杀死了魔王"%player.name)
+                    player.achivements.update(achievement_beat_maou)
                     mes.append("魔王的随从们看到这一幕，纷纷认%s为新的老大")
                     mes.append("%s成为了魔王!?"%player.name)
                     player.status['职业']='魔王'
@@ -420,6 +429,8 @@ class event_enter_school(event):
             return impossible
         if(player.species=='人类'):
             return f_calc_priority(1.3)
+        elif(player.species=='史莱姆'):
+            return impossible
         else:
             return f_calc_priority(1.8)
     def encounter(self,player):
@@ -441,6 +452,8 @@ class event_graduate(event):
     def encounter(self,player):
         mes=[]
         mes.append("%s从学校毕业回到了家乡%s"%(player.name,player.born_location))
+        if(player.status.get('学园偶像')):
+            player.status['学园偶像']=False
         player.location=player.born_location
         return mes
 class event_study(event):
@@ -525,9 +538,9 @@ class event_invading(event):
     def __init__(self):
         super().__init__("跟魔王打劫")
     def calc_priority(self, player):
-        if(player.status.get("职业")!="魔王"):
+        if(player.status.get("职业")=="魔王"):
             return impossible
-        if(player.status.get("职业")!="魔王军"):
+        if(player.status.get("职业")=="魔王军"):
             return f_calc_priority(1.1,prior)
         return impossible
     def encounter(self,player):
@@ -661,7 +674,7 @@ class event_slime_fight(event):
             if(player.win_by_lvl(2)):
                 mes.append("他们没有料到%s是一只很强的史莱姆"%player.name)
                 mes.append("他们被%s击退了"%name)
-                lvl_earn=0.5**self.lvl
+                lvl_earn=0.5**player.lvl
                 mes.append("能力值提升了%.1f"%lvl_earn)
             else:
                 mes.append("他们不怀好意地靠近你")
@@ -682,23 +695,73 @@ class event_slime_fight(event):
 
 #location ero dungeon events
 #
+
 class event_ero_dungeon(event):
     def __init__(self):
         super().__init__("工口地牢")
     def calc_priority(self, player):
-        if(self.location!='工口地牢'):
+        if(player.location!='工口地牢'):
             return impossible
         else:
             return f_calc_priority(1,prior)
     def encounter(self,player):
-        az=[]
+        
         mes=[]
         stat_name=lambda n:"hidden-工口地牢visited-%s"%n
-        calcp=lambda n:impossible if (stat_name(n) in player.status) else f_calc_priority(1)
+        name=player.name
+        _impossible=114514
+        calcp=lambda n:_impossible if (stat_name(n) in player.status) else f_calc_priority(1,prior)
         def level1():
             nonlocal mes
             player.status[stat_name('level1')]=True
-            
+            mes.append('%s遇到一片水池，对面有看起来像出口的门'%name)
+            mes.append('里面都是黏糊糊的液体，看起来非常牙白')
+            mes.append("水池上面有一根很细的桥")
+            mes.append("%s走了上去"%name)
+            mes.append("桥上伸出了许多绒毛触手，%s脚滑"%name)
+            mes.append("嗯喵！%s的腿掉进水池，正好跨在桥上，踮着脚"%name)
+            mes.append("水池里黏糊糊的液体原来是史莱姆，让%s行进缓慢"%name)
+            mes.append("桥上的触手绒毛刺激着%s"%name)
+            mes.append("非常艰难地通过了这片区域")
+            return
+        def level2():
+            nonlocal mes
+            player.status[stat_name('level2')]=True
+            mes.append('%s正在探路'%name)
+            mes.append('前面遇到一扇关着的门')
+            mes.append('地上有一根棒状物体，和一个液体容器')
+            mes.append('%s想了想，坐了上去'%name)
+            mes.append('嗯喵嗯喵嗯喵喵')
+            mes.append('容器装满%s的液体的时候，门开了'%name)
+            return
+        def level3():
+            nonlocal mes
+            player.status[stat_name('level3')]=True
+            mes.append('%s看到路边有一个宝箱'%name)
+            mes.append('毫无戒备心的笨比%s打开了宝箱'%name)
+            mes.append('里面有一套散发着魔力之光的衣服')
+            mes.append('“看起来是史诗级装备呀”')
+            mes.append('%s穿了上去'%name)
+            mes.append('恰到好处地包裹住了%s，发现怎么也脱不下来'%name)
+            mes.append('衣服内部伸出了触手')
+            mes.append('嗯喵嗯喵喵嗯喵')
+            return
+        def level_boss():
+            nonlocal mes
+            mes.append('%s终于找到了出口'%name)
+            player.location=player.born_location
+            for i in ['level1','level2','level3']:
+                player.status[stat_name(i)]=False
+            return
+        az=list()
+        az.append((calcp('level1'),random.random(),level1))
+        az.append((calcp('level2'),random.random(),level2))
+        az.append((calcp('level3'),random.random(),level3))
+        az.append((_impossible-1,random.random(),level_boss))
+        min(az)[-1]()
+        player.old_speed=0.01
+        return mes
+
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)
@@ -764,3 +827,7 @@ else:
     #slime events
     event_slime_born()
     event_slime_fight()
+
+    #ero dungeon events
+    event_enter_ero_dungeon()
+    event_ero_dungeon()

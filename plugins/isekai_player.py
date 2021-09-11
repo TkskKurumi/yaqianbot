@@ -27,6 +27,7 @@ class player_status:
             self.status=dict()
         else:
             self.status=status
+        self.achievements=dict()
     def is_alive(self):
         return self.hp>0
     def dump_mes(self):
@@ -77,6 +78,10 @@ class player_status:
             elif(j=='False'):
                 continue
             mes.append("  %s: %s"%(i,j))
+        if(self.achievements):
+            mes.append("成就：")
+            for i,j in self.achievements.items():
+                mes.append("  %s: %s"%(i,j))
         return mes
     def refine_species(self):
         if(self.species=='猫人'):

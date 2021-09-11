@@ -31,7 +31,7 @@ def render_rt(mes):
             _mes.append('\n')
         else:
             _mes.append(str(i)+'\n')
-    rich_text=widgets.richText(contents=_mes,width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255))
+    rich_text=widgets.richText(contents=_mes,width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
     return rich_text.render()
 def choose_event(player):
     az=[]
@@ -64,10 +64,12 @@ def cmd_isekai(ctx):
     reported=0
     def send_mes():
         nonlocal mes
-        import pic2pic
+        '''import pic2pic
+        
+        mes='\n'.join(mes)'''
         mes.extend(player.report_status())
-        mes='\n'.join(mes)
-        im=pic2pic.txt2im_ml(mes,bg=(255,)*4,fill=(0,0,0,255),width=512,fixedHeight=24)
+        #im=pic2pic.txt2im_ml(mes,bg=(255,)*4,fill=(0,0,0,255),width=512,fixedHeight=24)
+        im=render_rt(mes)
         simple_send(ctx,im)
         mes=[]
         reported=0
