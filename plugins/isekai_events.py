@@ -392,7 +392,7 @@ class event_maou_massacre(event):
                 mes.append("魔王邀请%s加入魔王军，%s拒绝了"%(player.name,player.name))
                 if(player.win_by_lvl(8)):
                     mes.append("%s杀死了魔王"%player.name)
-                    player.achivements.update(achievement_beat_maou)
+                    player.achievements.update(achievement_beat_maou)
                     mes.append("魔王的随从们看到这一幕，纷纷认%s为新的老大")
                     mes.append("%s成为了魔王!?"%player.name)
                     player.status['职业']='魔王'
