@@ -223,16 +223,19 @@ class event_goto_forest(event_newlocation):
 achievement_transgender={"变身美少女":"在工口地牢里变成女孩子"}
 class event_enter_ero_dungeon(event):
     def __init__(self):
-        super().__init__(name='进入工口地牢',rarity=2.5)
+        super().__init__(name='进入工口地牢',rarity=3.5)
     def calc_priority(self, player):
         if(player.location=='工口地牢'):
             return impossible
         if(player.yearold<12 or player.yearold>40):
             return impossible
+        if('hidden-进过工口地牢' in player.status):
+            return f_calc_priority(5.5)
         return super().calc_priority(player)
     def encounter(self,player):
         mes=[]
         name=player.name
+        player.status['hidden-进过工口地牢']=True
         mes.append("%s在森林深处散步"%name)
         mes.append("%s看到地上有个写着奇怪文字的石碑"%name)
         mes.append("靠近后，地上出现了一道门")
