@@ -18,7 +18,7 @@ import isekai_player,isekai_events
 import time
 from glob import glob
 from PIL import Image
-
+from aiocqhttp import MessageSegment as mseg
 def get_resource(name,end='\n') -> list:
     
     pth=path.join(mainpth,'static_pics','isekai',name,"*")
@@ -43,7 +43,7 @@ def render_rt(mes):
             _mes.append('\n')
         else:
             _mes.append(str(i)+'\n')
-    rich_text=widgets.richText(contents=_mes,alignX=0.01,imageLimit=(500,768),width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
+    rich_text=widgets.richText(contents=_mes,alignX=0.01,imageLimit=(500,768),width=512,fontSize=36,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
     return rich_text.render()
 def choose_event(player):
     az=[]
@@ -67,7 +67,7 @@ def spawn_player(name='张三'):
 @receiver_nlazy
 @threading_run
 @on_exception_send
-@start_with(r'[~/#]异世界')
+@start_with(r'[~/]异世界')
 def cmd_isekai(ctx):
     sctx=simple_ctx(ctx)
     name=sctx.user_name
@@ -79,16 +79,17 @@ def cmd_isekai(ctx):
         '''import pic2pic
         
         mes='\n'.join(mes)'''
+        mes.append("="*20)
         mes.extend(player.report_status())
         #im=pic2pic.txt2im_ml(mes,bg=(255,)*4,fill=(0,0,0,255),width=512,fixedHeight=24)
         im=render_rt(mes)
-        simple_send(ctx,im)
+        simple_send(ctx,[mseg.at(int(sctx.user_id)),im],im_size_limit=2<<20)
         mes=[]
         reported=0
     
     for i in range(500):
         if(i):
-            mes.append("="*10)
+            mes.append("="*20)
         mes.append("%s:"%player.strold())
         evt=choose_event(player)
         
@@ -99,10 +100,13 @@ def cmd_isekai(ctx):
         mes.append("\n")
         player.get_old(0.5+random.random())
         mes.extend(player.dump_mes())
-        if(len(mes)>40):
+        if(len(mes)>256):
             send_mes()
+            reported=0
             time.sleep(10)
-    
+        if(len(mes)>reported+40):
+            mes.append("="*20)
+            mes.extend(player.report_status())
     
     if(mes):
         send_mes()
