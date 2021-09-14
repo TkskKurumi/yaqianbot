@@ -1,6 +1,10 @@
 if(__name__!='__main__'):
     from bot_backend import *
+from os import get_terminal_size
 import random
+from isekai_player import player_status as cplayer
+import plg_isekai
+get_resource=lambda *args,**kwargs:plg_isekai.get_resource(*args,**kwargs)
 events=dict()
 inevitable=float('-inf')
 impossible=float('inf')
@@ -18,18 +22,25 @@ class event:
         self.priority_delta=priority_delta
         global events
         events[name]=self
-    def judge_possible(self,player):
+    def judge_possible(self,player:cplayer) ->bool:
         return True
-    def calc_priority(self,player):
+    def calc_priority(self,player:cplayer) ->float:
         return random.normalvariate(self.rarity,self.rarity**0.5)+self.priority_delta
-    def try_encounter(self,userinfo):
-        return self.calc_priority(userinfo),self
+    def try_encounter(self,player:cplayer) ->tuple:
+        return self.calc_priority(player),self
     def __str__(self):
         return "Event(%s)"%self.name
     def __repr__(self):
         return self.__str__()
     def __lt__(self,other):
         return self.name<other.name
+    def encounter(self,player:cplayer) ->list:
+        mes=[]
+        name=player.name
+        
+        mes=['%s遭遇事件%s'%(name,self.name)]
+
+        return mes
 class event_born(event):
     def __init__(self):
         super().__init__('出生')
@@ -107,6 +118,7 @@ class event_farm_slime(event):
         player.lvl+=lvl_earn
         
         mes.append("%s在打史莱姆"%player.name)
+        mes.extend(get_resource('史莱姆'))
         if(hp==0):
             if(player.yearold<11):
                 mes.append("幼小的%s根本不知道怪物的可怕，作死了"%name)
@@ -114,7 +126,12 @@ class event_farm_slime(event):
                 monster_name=random.choice(['史莱姆'])
                 mes.append("%s真是杂鱼，居然%s都打不过"%(name,monster_name))
             return mes
-        mes.append("掉了%.1f血能力值提升了%.1f"%(hp_cost,lvl_earn))
+        if(random.random()<0.5):
+            player.earn_item('史莱姆精华液')
+            mes.append("掉了%.1f血能力值提升了%.1f，获得了一份史莱姆精华液"%(hp_cost,lvl_earn))
+        else:
+            mes.append("掉了%.1f血能力值提升了%.1f"%(hp_cost,lvl_earn))
+        
         player.old_speed=0.1
         return mes
 class event_farm_goblin(event):
@@ -207,10 +224,12 @@ class event_goto_forest(event_newlocation):
     def calc_priority(self,player):
         if(player.location=='森林'):
             return impossible
+        if(player.status.get("职业")=='杂货店主'):
+            return impossible
         if(player.species=='精灵'):
-            return f_calc_priority(1.7)
+            return f_calc_priority(2.2)
         else:
-            return f_calc_priority(2)
+            return f_calc_priority(2.5)
     def encounter(self,player):
         mes=[]
         player.location='森林'
@@ -218,6 +237,22 @@ class event_goto_forest(event_newlocation):
             mes.append("%s回到了故乡，大森林"%player.name)
         else:
             mes.append("%s来到了大森林"%player.name)
+        return mes
+class event_goto_town(event):
+    def __init__(self):
+        super().__init__('前往城镇')
+    def calc_priority(self, player):
+        if(player.location=='城镇'):
+            return impossible
+        elif(player.species=='人类'):
+            return f_calc_priority(2.2)
+        else:
+            return f_calc_priority(2.5)
+    def encounter(self,player):
+        player.location='城镇'
+        mes=[]
+        name=player.name
+        mes.append("%s来到了城镇"%name)
         return mes
 
 achievement_transgender={"变身美少女":"在工口地牢里变成女孩子"}
@@ -489,11 +524,11 @@ class event_SIF(event):
         mes=['学校里有一个同学成立了学园偶像部']
         if(player.gender=='女性' and random.random()<0.5):
             player.status['学园偶像']=True
-            mes.append("%s成为了学园偶像☆")
+            mes.append("%s成为了学园偶像☆"%player.name)
             az="Pop Pin μ Lie La Party Glow Aqua Ours Saint Snow Rise Sun Dream"
             az+=" Vivid Pastel Pallete Rose Furan Saga 48 AKM XQC48"
             az=az.split()
-            group_name=" ".join(random.sample(az,4))
+            group_name=" ".join(random.sample(az,3))
             mes.append("你们的组合叫%s"%group_name)
         return mes
 #SIF events
@@ -660,6 +695,7 @@ class event_slime_born(event):
         mes=[]
         mes.append("%s穿越到了异世界"%player.name)
         mes.append("你作为史莱姆重生了")
+        mes.extend(get_resource("史莱姆"))
         player.status['史莱姆出生']=True
         return mes
 class event_slime_fight(event):
@@ -746,6 +782,7 @@ class event_ero_dungeon(event):
             mes.append('“看起来是史诗级装备呀”')
             mes.append('%s穿了上去'%name)
             mes.append('恰到好处地包裹住了%s，发现怎么也脱不下来'%name)
+            mes.extend(get_resource("触手服"))
             mes.append('衣服内部伸出了触手')
             mes.append('嗯喵嗯喵喵嗯喵')
             return
@@ -755,6 +792,7 @@ class event_ero_dungeon(event):
             player.location=player.born_location
             for i in ['level1','level2','level3']:
                 player.status[stat_name(i)]=False
+            player.earn_item('触手服')
             return
         az=list()
         az.append((calcp('level1'),random.random(),level1))
@@ -765,6 +803,88 @@ class event_ero_dungeon(event):
         player.old_speed=0.01
         return mes
 
+
+
+#event get jobs
+class event_become_shopkeeper(event):
+    def __init__(self):
+        super().__init__('开个商店')
+    def calc_priority(self, player):
+        if('职业' in player.status):
+            return impossible
+        if(player.yearold>20 and player.location=='城镇'):
+            return f_calc_priority(1.4)
+        return impossible
+    def encounter(self,player):
+        mes=[]
+        name=player.name
+        mes.append("%s在小镇上开了一家杂货店"%name)
+        player.status['职业']='杂货店主'
+        return mes
+
+#event job daily
+class event_shop_keeper(event):
+    def __init__(self):
+        super().__init__("经营商店")
+    def calc_priority(self, player):
+        if(player.status.get('职业')=='杂货店主'):
+            return f_calc_priority(1.5)
+        return impossible
+    def encounter(self,player):
+        mes=[]
+        name=player.name
+        mes.append("%s经营着一家商店"%name)
+        if(random.random()<0.3):
+            mes.append("有一位冒险者前来买东西")
+            mes.append("他说%s给他卖假货，吵起来了"%name)
+            if(player.win_by_lvl(3)):
+                mes.append("%s一拳把闹事者打晕了，丢出去")
+            elif(random.random()<0.8):
+                mes.append("店里其他人觉得无语")
+                mes.append("帮忙把闹事者赶走了")
+            else:
+                mes.append("他在店里到处打砸")
+                hp_cost=(1-player.win_rate_by_lvl(3))*5*random.random()
+                if(random.random()<0.7):
+                    hp_cost=min(player.hp/2,hp_cost)
+                
+                hp=player.lose_hp(hp_cost)
+                if(hp!=0):
+                    mes.append("%s阻挠的过程中掉了%.1f HP"%(name,hp_cost))
+                else:
+                    mes.append("撒日朗！！！")
+        elif(random.random()<0.5):
+            money_earn=random.random()*70+10
+            mes.append("%s赚了%.1f元"%(name,money_earn))
+            player.status['金钱']=player.status.get("金钱",0)+money_earn
+        
+        return mes
+
+
+#event misc
+class event_sell_inventory(event):
+    def __init__(self):
+        super().__init__("卖东西")
+    def calc_priority(self, player:cplayer) -> float:
+        if(not player.inventory_num()):
+            return impossible
+        if(player.location!='城镇'):
+            return impossible
+        return f_calc_priority(2)
+    def encounter(self, player: cplayer) -> list:
+        mes=[]
+        name=player.name
+        mes=["%s在商店"]
+        earn=0
+        value={"触手服":100,"史莱姆精华液":10}
+        for i,j in value.items():
+            if(player.inventory.get(i)):
+                _earn=player.inventory[i]*j
+                earn+=_earn
+                mes.append("出售了%s，获得%d金钱"%(i,_earn))
+                player.inventory[i]=0
+        player.earn_money(earn)
+        return mes
 if(__name__=='__main__'):
     event('A',rarity=1)
     event('B',rarity=2)
@@ -834,3 +954,13 @@ else:
     #ero dungeon events
     event_enter_ero_dungeon()
     event_ero_dungeon()
+    event_goto_town()
+
+    #event get jobs
+    event_become_shopkeeper()
+
+    #event jobs daily
+    event_shop_keeper()
+
+    #event misc
+    event_sell_inventory()

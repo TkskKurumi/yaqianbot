@@ -16,7 +16,19 @@ from isekai_events import events
 from isekai_player import player_status
 import isekai_player,isekai_events
 import time
+from glob import glob
+from PIL import Image
 
+def get_resource(name,end='\n') -> list:
+    
+    pth=path.join(mainpth,'static_pics','isekai',name,"*")
+    pths=glob(pth)
+    if(pths):
+        p=random.choice(pths)
+        im=Image.open(p)
+        return [im,end]
+    else:
+        return []
 def render_rt(mes):
     _mes=[]
     for i in mes:
@@ -31,7 +43,7 @@ def render_rt(mes):
             _mes.append('\n')
         else:
             _mes.append(str(i)+'\n')
-    rich_text=widgets.richText(contents=_mes,width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
+    rich_text=widgets.richText(contents=_mes,alignX=0.01,imageLimit=(500,768),width=512,fontSize=22,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
     return rich_text.render()
 def choose_event(player):
     az=[]
@@ -55,7 +67,7 @@ def spawn_player(name='张三'):
 @receiver_nlazy
 @threading_run
 @on_exception_send
-@start_with(r'/异世界')
+@start_with(r'[~/#]异世界')
 def cmd_isekai(ctx):
     sctx=simple_ctx(ctx)
     name=sctx.user_name
@@ -73,7 +85,10 @@ def cmd_isekai(ctx):
         simple_send(ctx,im)
         mes=[]
         reported=0
+    
     for i in range(500):
+        if(i):
+            mes.append("")
         mes.append("%s:"%player.strold())
         evt=choose_event(player)
         

@@ -28,6 +28,7 @@ class player_status:
         else:
             self.status=status
         self.achievements=dict()
+        self.inventory=dict()
     def is_alive(self):
         return self.hp>0
     def dump_mes(self):
@@ -43,9 +44,15 @@ class player_status:
                 if(lvl_earn>0.1):
                     self.mes.append("随着年龄的增长，%s能力值变强了%.1f"%(self.name,lvl_earn))
         elif(self.yearold>40 and (self.species not in '魅魔精灵史莱姆')):
-            lvl_lost=self.lvl*(1-(0.97**nn))
+            lvl_lost=self.lvl*(1-(0.95**nn))
             self.lvl-=lvl_lost
-            self.mes.append("随着衰老，%s能力值变弱了%.1f"%(self.name,lvl_lost))
+            if(lvl_lost>0.1):
+                self.mes.append("随着衰老，%s能力值变弱了%.1f"%(self.name,lvl_lost))
+        elif(self.species in '精灵魅魔' and self.yearold>200):
+            lvl_lost=self.lvl*(1-(0.95**nn))
+            self.lvl-=lvl_lost
+            if(lvl_lost>0.1):
+                self.mes.append("随着衰老，%s能力值变弱了%.1f"%(self.name,lvl_lost))
         if(self.yearold>100):
             nn*=self.yearold/10
         self.yearold+=nn
@@ -64,6 +71,7 @@ class player_status:
         mes=[]
         mes.append("%s %s:"%(self.refine_species(),self.name))
         mes.append("%s, 能力值%.1f, HP%.1f"%(self.strold(),self.lvl,self.hp))
+        mes.append("地点: %s"%self.location)
         for i in self.status:
             if(i=='史莱姆出生'):
                 continue
@@ -72,16 +80,23 @@ class player_status:
             if(i.startswith("hidden-")):
                 continue
             j=self.status[i]
-            j=str(j)
-            if(j in 'True'):
-                j=''
-            elif(j=='False'):
-                continue
-            mes.append("  %s: %s"%(i,j))
+            if(isinstance(j,float)):
+                mes.append("  %s: %.1f"%(i,j))
+            else:
+                j=str(j)
+                if(j in 'True'):
+                    j=''
+                elif(j=='False'):
+                    continue
+                mes.append("  %s: %s"%(i,j))
         if(self.achievements):
             mes.append("成就：")
             for i,j in self.achievements.items():
                 mes.append("  %s: %s"%(i,j))
+        if(self.inventory and any([j for i,j in self.inventory.items()])):
+            mes.append("物品：")
+            for i,j in self.inventory.items():
+                mes.append("  %s: %d件"%(i,j))
         return mes
     def refine_species(self):
         if(self.species=='猫人'):
@@ -101,4 +116,12 @@ class player_status:
         return win_rate
     def profit_by_lvl(self):
         return max(self.lvl/5,f_calc_priority(self.lvl))
-    
+    def earn_money(self,n):
+        self.status['金钱']=self.status.get('金钱',0)+n
+    def earn_item(self,item,n=1):
+        self.inventory[item]=self.inventory.get(item,0)+n
+    def inventory_num(self):
+        ret=0
+        for i,j in self.inventory.items():
+            ret+=j
+        return ret
