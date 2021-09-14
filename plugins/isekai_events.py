@@ -75,9 +75,12 @@ class event_old_disease(event):
             p=5-(player.yearold-100)/20 #when 180 yearold,p become 1
         else:
             p=5-(player.yearold-50)/5   #when 70 yearold, p become 1
+        if(player.status.get('职业')=='魔王军'):
+            return f_calc_priority(max(p,0.1),prior)
         return f_calc_priority(max(p,0.1))
     def encounter(self,player):
         mes=[]
+        name=player.name
         alive=player.win_by_lvl(3)
         if(alive):
             if(random.random()<0.3):
@@ -89,11 +92,11 @@ class event_old_disease(event):
         else:
             player.hp=0
             if(random.random()<0.3):
-                mes.append("%s摔了一跤撞到了后脑勺..")
+                mes.append("%s摔了一跤撞到了后脑勺.."%name)
             elif(random.random()<0.5):
-                mes.append("%s得了严重的肺病")
+                mes.append("%s得了严重的肺病"%name)
             else:
-                mes.append("%s突发恶疾！！")
+                mes.append("%s突发恶疾！！"%name)
         return mes
 class event_farm_slime(event):
     #刷小怪
@@ -105,9 +108,12 @@ class event_farm_slime(event):
         if(player.species=='史莱姆'):
             return impossible
         if(player.yearold<11):
-            return f_calc_priority(3)
+            return f_calc_priority(5)
         else:
-            return f_calc_priority(0.5+25/player.hp)
+            tmp=0.5+25/player.hp
+            if(player.status.get('职业')=='冒险者'):
+                tmp=max(0.5,tmp-0.5)
+            return f_calc_priority(tmp)
     def encounter(self,player):
         mes=[]
         name=player.name
@@ -146,8 +152,10 @@ class event_farm_goblin(event):
             return impossible
         if(hp_cost>10):
             return impossible
-        
-        return f_calc_priority(0.8+hp_cost/20)
+        tmp=0.8+hp_cost/20
+        if(player.status.get('职业')=='冒险者'):
+            tmp=max(0.8,tmp-0.5)
+        return f_calc_priority(tmp)
     def encounter(self,player):
         mes=[]
         name=player.name
@@ -226,6 +234,8 @@ class event_goto_forest(event_newlocation):
             return impossible
         if(player.status.get("职业")=='杂货店主'):
             return impossible
+        if(player.status.get('职业')=='冒险者'):
+            return f_calc_priority(1.5)
         if(player.species=='精灵'):
             return f_calc_priority(2.2)
         else:
@@ -241,9 +251,13 @@ class event_goto_forest(event_newlocation):
 class event_goto_town(event):
     def __init__(self):
         super().__init__('前往城镇')
-    def calc_priority(self, player):
+    def calc_priority(self, player:cplayer):
         if(player.location=='城镇'):
             return impossible
+        if(player.species=='史莱姆'):
+            return impossible
+        elif(player.inventory_num()>5):
+            return f_calc_priority(0.5)
         elif(player.species=='人类'):
             return f_calc_priority(2.2)
         else:
@@ -264,6 +278,9 @@ class event_enter_ero_dungeon(event):
             return impossible
         if(player.yearold<12 or player.yearold>40):
             return impossible
+        if(player.location!='森林'):
+            return f_calc_priority(8.5)
+        
         if('hidden-进过工口地牢' in player.status):
             return f_calc_priority(5.5)
         return super().calc_priority(player)
@@ -271,6 +288,8 @@ class event_enter_ero_dungeon(event):
         mes=[]
         name=player.name
         player.status['hidden-进过工口地牢']=True
+        if(player.location!='森林'):
+            mes.append("%s突然间很想去森林"%name)
         mes.append("%s在森林深处散步"%name)
         mes.append("%s看到地上有个写着奇怪文字的石碑"%name)
         mes.append("靠近后，地上出现了一道门")
@@ -288,7 +307,7 @@ class event_enter_ero_dungeon(event):
 achievement_orc_slayer={"反本子剧情":"女精灵逆袭兽人"}
 class event_elf_raped(event):
     def __init__(self):
-        super().__init__(name='精灵被嗯喵',rarity=1.5)
+        super().__init__(name='精灵被嗯喵',rarity=1)
     def calc_priority(self,player):
         if(player.gender=='女性' and player.species=='精灵' and player.location=='森林' and player.yearold>14):
             return super().calc_priority(player)
@@ -307,8 +326,24 @@ class event_elf_raped(event):
             else:
                 mes.append("%s被关起来嗯喵❤嗯喵喵❤喵喵呜呜❤"%player.name)
                 mes.append("掉了%.1fHP"%10)
+                player.numeric_status_count('经验次数')
         return mes
-        
+class event_elf_akuochi(event):
+    #恶堕
+    def __init__(self):
+        super().__init__(name='女精灵恶堕')
+    def calc_priority(self, player: cplayer) -> float:
+        if(player.species=='精灵' and player.gender=='女性'):
+            if(player.status.get('经验次数',0)>5):
+                if(player.location!='工口地牢'):
+                    return inevitable
+        return impossible
+    def encounter(self, player: cplayer) -> list:
+        mes=[]
+        name=player.name
+        mes.append("%s变成了魅魔，hso！"%name)
+        player.species='魅魔'
+        return mes
 class event_elf_daily(event):
     def __init__(self):
         super().__init__(name='精灵在森林的平常生活')
@@ -390,26 +425,19 @@ class event_forest_fire(event):
 achievement_beat_maou={"就这？":"杀死魔王"}
 class event_maou_massacre(event):
     def __init__(self):
-        super().__init__(name="魔王大屠杀",rarity=4.4)
+        super().__init__(name="魔王大屠杀",rarity=5.9)
     def calc_priority(self, player):
         if(player.status.get('职业')=='魔王' or player.status.get('师从魔王')):
             return impossible
         if(player.status.get('职业')=='魔王军'):
             return impossible
         if(player.location=='学校'):
-            return f_calc_priority(4.4,prior)
+            return f_calc_priority(5.9,prior)
         
         return super().calc_priority(player)
     def encounter(self,player):
-        '''if(player.lvl<2):
-            enter=0
-        elif(player.lvl<3.5):
-            enter=0.01
-        elif(player.lvl<5):
-            enter=0.4
-        else:
-            enter=0.9'''
-        if(player.win_by_lvl(3.5)):
+        
+        if(player.win_by_lvl(3.8)):
             accept=random.random()<0.5
             if(accept):
                 mes=[]
@@ -525,8 +553,8 @@ class event_SIF(event):
         if(player.gender=='女性' and random.random()<0.5):
             player.status['学园偶像']=True
             mes.append("%s成为了学园偶像☆"%player.name)
-            az="Pop Pin μ Lie La Party Glow Aqua Ours Saint Snow Rise Sun Dream"
-            az+=" Vivid Pastel Pallete Rose Furan Saga 48 AKM XQC48"
+            az="Pop Pin μ Li ela Party Glow Aqua Ours Saint Snow Rise Sun Dream"
+            az+=" Vivid Pastel Pallete Rose Furan Saga 48 super miracle Shiny Girls"
             az=az.split()
             group_name=" ".join(random.sample(az,3))
             mes.append("你们的组合叫%s"%group_name)
@@ -743,7 +771,7 @@ class event_ero_dungeon(event):
             return impossible
         else:
             return f_calc_priority(1,prior)
-    def encounter(self,player):
+    def encounter(self,player:cplayer):
         
         mes=[]
         stat_name=lambda n:"hidden-工口地牢visited-%s"%n
@@ -762,6 +790,7 @@ class event_ero_dungeon(event):
             mes.append("水池里黏糊糊的液体原来是史莱姆，让%s行进缓慢"%name)
             mes.append("桥上的触手绒毛刺激着%s"%name)
             mes.append("非常艰难地通过了这片区域")
+            player.numeric_status_count('经验次数')
             return
         def level2():
             nonlocal mes
@@ -772,6 +801,7 @@ class event_ero_dungeon(event):
             mes.append('%s想了想，坐了上去'%name)
             mes.append('嗯喵嗯喵嗯喵喵')
             mes.append('容器装满%s的液体的时候，门开了'%name)
+            player.numeric_status_count('经验次数')
             return
         def level3():
             nonlocal mes
@@ -785,6 +815,7 @@ class event_ero_dungeon(event):
             mes.extend(get_resource("触手服"))
             mes.append('衣服内部伸出了触手')
             mes.append('嗯喵嗯喵喵嗯喵')
+            player.numeric_status_count('经验次数')
             return
         def level_boss():
             nonlocal mes
@@ -821,7 +852,21 @@ class event_become_shopkeeper(event):
         mes.append("%s在小镇上开了一家杂货店"%name)
         player.status['职业']='杂货店主'
         return mes
-
+class event_become_venturer(event):
+    def __init__(self):
+        super().__init__("当个冒险者")
+    def calc_priority(self, player: cplayer) -> float:
+        if(player.status.get('职业')):
+            return impossible
+        if(player.yearold>20):
+            return f_calc_priority(1.4)
+        return impossible
+    def encounter(self, player: cplayer) -> list:
+        mes=[]
+        name=player.name
+        mes.append("%s打算去当冒险者")
+        player.status['职业']='冒险者'
+        return mes
 #event job daily
 class event_shop_keeper(event):
     def __init__(self):
@@ -838,7 +883,7 @@ class event_shop_keeper(event):
             mes.append("有一位冒险者前来买东西")
             mes.append("他说%s给他卖假货，吵起来了"%name)
             if(player.win_by_lvl(3)):
-                mes.append("%s一拳把闹事者打晕了，丢出去")
+                mes.append("%s一拳把闹事者打晕了，丢出去"%name)
             elif(random.random()<0.8):
                 mes.append("店里其他人觉得无语")
                 mes.append("帮忙把闹事者赶走了")
@@ -868,13 +913,15 @@ class event_sell_inventory(event):
     def calc_priority(self, player:cplayer) -> float:
         if(not player.inventory_num()):
             return impossible
-        if(player.location!='城镇'):
+        if(player.location not in '城镇,魔王领地'):
             return impossible
+        if(player.inventory_num()>8):
+            return f_calc_priority(0.5)
         return f_calc_priority(2)
     def encounter(self, player: cplayer) -> list:
         mes=[]
         name=player.name
-        mes=["%s在商店"]
+        mes=["%s在商店"%name]
         earn=0
         value={"触手服":100,"史莱姆精华液":10}
         for i,j in value.items():
@@ -920,9 +967,11 @@ else:
     event_old_disease()
     #move place events
     event_goto_forest()
+    event_goto_town()
     #elf events
     event_elf_raped()
     event_elf_daily()
+    event_elf_akuochi()
     #neko events
     event_neko_catch_fish()
     event_neko_prpr()
@@ -954,11 +1003,12 @@ else:
     #ero dungeon events
     event_enter_ero_dungeon()
     event_ero_dungeon()
-    event_goto_town()
+    
 
     #event get jobs
     event_become_shopkeeper()
-
+    event_become_venturer()
+    
     #event jobs daily
     event_shop_keeper()
 

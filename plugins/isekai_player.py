@@ -125,3 +125,5 @@ class player_status:
         for i,j in self.inventory.items():
             ret+=j
         return ret
+    def numeric_status_count(self,name,n=1):
+        self.status[name]=self.status.get(name,0)+n
