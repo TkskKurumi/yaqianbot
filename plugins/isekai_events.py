@@ -883,20 +883,20 @@ class event_shop_keeper(event):
         if(random.random()<0.3):
             mes.append("有一位冒险者前来买东西")
             mes.append("他说%s给他卖假货，吵起来了"%name)
-            if(player.win_by_lvl(3)):
+            if(player.win_by_lvl(4)):
                 mes.append("%s一拳把闹事者打晕了，丢出去"%name)
-            elif(random.random()<0.8):
+            elif(random.random()<0.2):
                 mes.append("店里其他人觉得无语")
                 mes.append("帮忙把闹事者赶走了")
             else:
                 mes.append("他在店里到处打砸")
-                hp_cost=(1-player.win_rate_by_lvl(3))*5*random.random()
-                if(random.random()<0.7):
+                hp_cost=(1-player.win_rate_by_lvl(3))*20*random.random()
+                if(random.random()<0.2):
                     hp_cost=min(player.hp/2,hp_cost)
                 
                 hp=player.lose_hp(hp_cost)
                 if(hp!=0):
-                    mes.append("%s阻挠的过程中掉了%.1f HP"%(name,hp_cost))
+                    mes.append("%s被找茬的人用刀砍，掉了%.1f HP"%(name,hp_cost))
                 else:
                     mes.append("撒日朗！！！")
         elif(random.random()<0.5):
