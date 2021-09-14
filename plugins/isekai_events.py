@@ -335,13 +335,14 @@ class event_elf_akuochi(event):
         super().__init__(name='女精灵恶堕')
     def calc_priority(self, player: cplayer) -> float:
         if(player.species=='精灵' and player.gender=='女性'):
-            if(player.status.get('经验次数',0)>5):
+            if(player.status.get('经验次数',0)>=5):
                 if(player.location!='工口地牢'):
                     return inevitable
         return impossible
     def encounter(self, player: cplayer) -> list:
         mes=[]
         name=player.name
+        mes.append("%s%s因为经验次数达到5次"%(player.refine_species(),player.name))
         mes.append("%s变成了魅魔，hso！"%name)
         player.species='魅魔'
         return mes
