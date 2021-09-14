@@ -43,7 +43,7 @@ def render_rt(mes):
             _mes.append('\n')
         else:
             _mes.append(str(i)+'\n')
-    rich_text=widgets.richText(contents=_mes,alignX=0.01,imageLimit=(500,768),width=512,fontSize=36,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
+    rich_text=widgets.richText(contents=_mes,alignX=0.01,imageLimit=(500,768),width=512,fontSize=32,font=pic2pic.default_font,bg=(255,)*4,fill=(0,0,0,255),autoSplit=False)
     return rich_text.render()
 def choose_event(player):
     az=[]
@@ -100,13 +100,14 @@ def cmd_isekai(ctx):
         mes.append("\n")
         player.get_old(0.5+random.random())
         mes.extend(player.dump_mes())
-        if(len(mes)>256):
+        if(len(mes)>180):
             send_mes()
             reported=0
             time.sleep(10)
         if(len(mes)>reported+40):
             mes.append("="*20)
             mes.extend(player.report_status())
+            reported=len(mes)
     
     if(mes):
         send_mes()
