@@ -324,6 +324,7 @@ class event_elf_raped(event):
             if(hp==0):
                 mes.append("%s被关起来变成了兽人的RBQ，被雷普到死"%player.name)
             else:
+                mes.extend(get_resource('女精灵兽人'))
                 mes.append("%s被关起来嗯喵❤嗯喵喵❤喵喵呜呜❤"%player.name)
                 mes.append("掉了%.1fHP"%10)
                 player.numeric_status_count('经验次数')

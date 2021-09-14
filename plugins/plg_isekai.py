@@ -88,7 +88,7 @@ def cmd_isekai(ctx):
     
     for i in range(500):
         if(i):
-            mes.append("")
+            mes.append("="*10)
         mes.append("%s:"%player.strold())
         evt=choose_event(player)
         
