@@ -24,6 +24,7 @@ def add_multi_timestamp_to_list(ls,tss:list,interval=7*24):
         heapq.heappush(ls,ts)
     ts=time.time()
     while(ls and ls[0]<ts-interval*3600):
+        print('ln27')
         heapq.heappop(ls)
     return ls
 def add_timestamp_to_list(ls,interval=7*24):    #interval in hours
@@ -37,14 +38,39 @@ def len_timestamp_list(ls,interval=7*24):
     while(ls and ls[0]<ts-interval*3600):
         heapq.heappop(ls)
     return len(ls)
-    
+def count_nctx(gid,uid,func):
+    lck.acquire()
+    try:
+        
+        gid=str(gid)
+        uid=str(uid)
+        print("count",func,type(gid),gid,type(uid),uid)
+                                    #{
+        d_group=db.get(gid,{})      #group:{
+        d_func=d_group.get(func,{})     #function:{
+        ls_all=d_func.get('all',[])         #All:[
+        add_timestamp_to_list(ls_all)
+        d_func['all']=ls_all                #]All-end
+        d_users=d_func.get('users',{})      #Users:{
+        ls_user=d_users.get(uid,[])             #user:[
+        add_timestamp_to_list(ls_user)
+        d_users[uid]=ls_user                    #]user-end
+        d_func['users']=d_users             #}Usrs-end
+        d_group[func]=d_func            #}function-end
+        db[gid]=d_group         #}
+    except Exception as e:
+        lck.release()
+        raise e
+    lck.release()
 def count(ctx,func):
     lck.acquire()
+    
     try:
         sctx=simple_ctx(ctx)
         
         gid=sctx.group_id
-        uid=sctx.user_id        
+        uid=sctx.user_id
+        print("count",func,type(gid),gid,type(uid),uid)
                                     #{
         d_group=db.get(gid,{})      #group:{
         d_func=d_group.get(func,{})     #function:{
@@ -69,13 +95,14 @@ def count_batch(ctx,func):
     tss=pending_count_batch.get(id,[])
     ts=time.time()
     tss.append(ts)
-    if(ts-tss[0]>30):   #save every 30 seconds I think should be flexible and suitable for both frequent
+    if(ts-tss[0]>60):   #save every 30 seconds I think should be flexible and suitable for both frequent
         count_multi(ctx,func,tss)   #operations and rare operations
         tss=[]
     pending_count_batch[id]=tss
 def count_multi(ctx,func,tss):
     lck.acquire()
     try:
+        tmr=receiver_timer('count multi')
         sctx=simple_ctx(ctx)
         
         gid=sctx.group_id
@@ -93,6 +120,7 @@ def count_multi(ctx,func,tss):
         d_func['users']=d_users             #}Usrs-end
         d_group[func]=d_func            #}function-end
         db[gid]=d_group         #}
+        tmr.finish()
     except Exception as e:
         lck.release()
         raise e
@@ -145,9 +173,11 @@ def cmd_statistics_usage(ctx,match,rest):
 @threading_cnt('count say')
 def cmd_count_say(ctx):
     try:
+        tmr=receiver_timer('发言计数')
         count_batch(ctx,'发言')
         sctx=simple_ctx(ctx)
         sid=normal_sid(sctx.group_id,sctx.user_id)
         sid2name[sid]=sctx.user_name
+        tmr.finish()
     except Exception:
         traceback.print_exc()
