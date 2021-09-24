@@ -1,5 +1,6 @@
 from bot_backend import *
 from pilloWidget import widgets,example
+from pilloWidget.widgets import *
 import myhash,time,heapq
 from threading import Lock
 from os import path
@@ -127,14 +128,18 @@ def count_multi(ctx,func,tss):
     lck.release()
 def normal_sid(group_id,user_id):
     return "%s-%s"%(group_id,user_id)
+
+
+
 @receiver
 @threading_cnt('statistics_usage')
 @on_exception_send
 @start_with("/统计")
 def cmd_statistics_usage(ctx,match,rest):
     rest=rest.strip()
+    fuckyou=example.plot_bar_chart_horizontal
+
     if(not rest):
-        fuckyou=example.plot_bar_chart
         sctx=simple_ctx(ctx)
         gid=sctx.group_id
         items=[]            #{
@@ -151,7 +156,6 @@ def cmd_statistics_usage(ctx,match,rest):
         im=fuckyou(items,'七天内功能统计',name_format=lambda name,num:"%s: %d"%(name,num))
         simple_send(ctx,im)
     else:
-        fuckyou=example.plot_bar_chart
         func=rest
         sctx=simple_ctx(ctx)
         gid=sctx.group_id   #{
