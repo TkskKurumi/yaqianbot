@@ -153,7 +153,7 @@ def cmd_statistics_usage(ctx,match,rest):
         if(not items):
             simple_send(ctx,'没有使用信息')
             return
-        im=fuckyou(items,'七天内功能统计',name_format=lambda name,num:"%s: %d"%(name,num))
+        im=fuckyou(items,'七天内功能统计',name_format=lambda name,num:"%s\n%d"%(name,num))
         simple_send(ctx,im)
     else:
         func=rest
@@ -171,7 +171,7 @@ def cmd_statistics_usage(ctx,match,rest):
         if(not items):
             simple_send(ctx,'没有使用信息')
             return
-        im=fuckyou(items,'七天内%s使用用户统计'%func,name_format=lambda name,num:"%s: %d"%(name,num))
+        im=fuckyou(items,'七天内%s使用用户统计'%func,name_format=lambda name,num:"%s\n%d"%(name,num))
         simple_send(ctx,im)
 @receiver
 @threading_cnt('count say')
