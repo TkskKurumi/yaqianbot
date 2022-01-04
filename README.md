@@ -1,7 +1,9 @@
 # 千千bot
 
 ## 快速开始
-
+```
+git clone --recursive https://github.com/TkskKurumi/yaqianbot.git
+```
 安装依赖库。（其中AnnoyIndex在Windows下安装需要VC++生成工具，或者使用已编译的[wheel](https://www.lfd.uci.edu/~gohlke/pythonlibs/#annoy)安装）
 ``` shell
 pip install -r requirements.txt
@@ -31,7 +33,7 @@ OSU!是是一款Windows平台上的同人音乐游戏。bot有OSU!查询用户�
 
 bot有Pixiv爬虫功能，bot需要本地代理https://127.0.0.1:1081（在/utils/pyxyv.py中设定），请自备魔法上网（
 
-对于pixiv上的登录可见内容。在Chrome浏览器中登录pixiv，而后使用[EditThisCookie插件](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg)导出cookie信息以登录。
+对于pixiv上的登录可见内容。在Chrome浏览器中登录pixiv，而后使用[EditThisCookie插件](https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg)导出cookie信息在files/pyxyv/pxvcookie.json以登录。
 
 而后`SUPERUSER`对bot发送一条pixiv插画链接后，爬虫将会获取与之相关的Pixiv插画，才可以使用`！色图`
 
