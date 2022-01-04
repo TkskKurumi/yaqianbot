@@ -1,3 +1,4 @@
+from concurrent import futures
 import requests,myio,json,getheader,os,time,copy,myhash,re,traceback,random,pic2pic,myio,zipfile
 import mytimer as timer
 from urllib.parse import urlencode
@@ -9,6 +10,7 @@ from make_gif import make_gif
 	from none_converters import *'''
 from glob import glob
 from myjobs import *
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta
 import lcg
 localCachingGeter=lcg.localCachingGeter
@@ -42,8 +44,8 @@ def savebin(filename,t,f=True):
 	f.write(t)
 	f.close()
 proxy_dict = {
-    "http": "http://127.0.0.1:1082",
-    "https": "http://127.0.0.1:1082"
+    "http": "http://127.0.0.1:1081",
+    "https": "http://127.0.0.1:1081"
 }	
 header=getheader.headers
 
@@ -474,10 +476,9 @@ def bfsRecommandCrawl(urls=None,timelimit=20,wait=1.1,allow_R18=False,svpth=pyxy
 	print(head,time.time()-start_t)
 	return head
 
-def results2pic(results,trimedPid,jobs1=None,tpidlock=None,result_title=None):
-	if(not(jobs1)):
-		jobs1=jobs()
-	
+def results2pic(results,trimedPid,tpidlock=None,result_title=None):
+	threadPool=ThreadPoolExecutor(max_workers=5)
+	futures=[]
 	for j in range(len(results['contents'])):
 		i=results['contents'][j]
 		for k in ['illustId','illust_id']:
@@ -488,16 +489,15 @@ def results2pic(results,trimedPid,jobs1=None,tpidlock=None,result_title=None):
 		purl=i['url']
 		tkwa={'url':purl,'headerex':{'Referer':results['preview_pic_referer']},'retry':8}
 		kwa={'target':lcg.get_image,'kwargs':tkwa,'name':j}
-		jobs1.start(kwa)
-	
-	jret=jobs1.getReturns()		#获得子线程返回值，是get二进制格式的图片
+		future=threadPool.submit(lcg.get_image,**tkwa)
+		futures.append(future)
 	il=pic2pic.ImageLib()
-	for idx in jret:
+	for idx,f in enumerate(futures):
 		#print(name)
+		p=f.result().convert("RGBA")
 		content=results['contents'][idx]
 		title=content.get("title",None) or content.get("illustTitle",None)
 		name=content.get("illust_id",None) or content.get("illustId",None) or content.get('id',None)
-		p=jret[idx].convert('RGBA')	#打开二进制图片，转换成RGBA格式
 		res=min(p.size)
 		res=(res,res)
 		p=pic2pic.imBanner(p,res)
@@ -848,11 +848,4 @@ def illust_illust_info(info,imMain,title='<illustTitle> by <userName>',bbl_res=N
 	ret.paste(imTags,(0,imBanner.size[1]+imMain.size[1]))
 	return ret
 if(__name__=='__main__'):
-	
-	#info=getIllustInfoByPID(81730617)
-	#print(getImageFilesByPID_(85763605,quality='regular'))
-	for pid in [87160884,87174375,87135355,87170282,87184077,87125991,87149851]:
-		getImageFilesByPID_(pid,quality='small')
-	#ims=getImageFilesByPID_(81730617,quality='regular')
-	#illust_illust_info(info,Image.open(ims[0])).save(r'G:\temp.png')
-	
+	test_ranking_pic()
