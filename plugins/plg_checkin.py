@@ -53,9 +53,9 @@ def getEmotionLevelAppellation(e):
 	return getEmotionLevel(e)[2]
 
 def get_random_bg_image(ctx=None):
-	if('plg_setu' in plugins):
+	try:
 		return Image.open(plugins['plg_setu'].rand_img(ctx=ctx))
-	else:
+	except Exception:
 		return Image.new("RGB",(512,512),(127,127,127))
 
 def get_check_in_mgr(group_id):
