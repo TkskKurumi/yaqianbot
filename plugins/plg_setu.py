@@ -399,7 +399,7 @@ def pxsearch(ctx,match,rest_text):
 	result_title='关于“%s”的插画第%s页'%(keyword,page)
 	simple_send(ctx,'正在搜索'+result_title)
 	search_result=pyxyv.search(keyword=keyword,page=page,mode='safe')
-	ret=pyxyv.results2pic(search_result,trimedPid,jobs1=jobs(),result_title=result_title)
+	ret=pyxyv.results2pic(search_result,trimedPid,result_title=result_title)
 	simple_send(ctx,[ret])
 
 @receiver
@@ -456,7 +456,7 @@ def pxrank(ctx,match,rest_text):
 		result_title='今日%s排行的第%s页'%(mode_natural[mode],page)
 	simple_send(ctx,'正在查询'+result_title)
 	search_result=pyxyv.getRanking(mode=mode,page=page,datedelta=dd)
-	ret=pyxyv.results2pic(search_result,trimedPid,jobs1=jobs(),result_title=result_title)
+	ret=pyxyv.results2pic(search_result,trimedPid,result_title=result_title)
 	simple_send(ctx,[ret])
 
 @receiver
