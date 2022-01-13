@@ -49,9 +49,9 @@ proxy_dict = {
 }	
 header=getheader.headers
 
-lcg=localCachingGeter(workpth=pyxyvPth+r'\tempcache',expiretime=86400,cookies=cookiejar,connection_throttle=(25,1),proxies=proxy_dict)
-lcg_m=localCachingGeter(workpth=pyxyvPth+r'\tempcache_middle',expiretime=1200,cookies=cookiejar,proxies=proxy_dict)
-lcg_s=localCachingGeter(workpth=pyxyvPth+r'\tempcache_short',expiretime=60,cookies=cookiejar,proxies=proxy_dict)
+lcg=localCachingGeter(workpth=path.join(pyxyvPth,'cache'),expiretime=86400,cookies=cookiejar,connection_throttle=(25,1),proxies=proxy_dict)
+lcg_m=localCachingGeter(workpth=path.join(pyxyvPth,'cache_m'),expiretime=1200,cookies=cookiejar,proxies=proxy_dict)
+lcg_s=localCachingGeter(workpth=path.join(pyxyvPth,'cache_s'),expiretime=60,cookies=cookiejar,proxies=proxy_dict)
 #lcg.getbin(r'https://www.pixiv.net/ajax/illust/70829971/recommend/init?limit=18',headerex={'Referer':r'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70829971'})
 
 #单页在medium网页中有original地址
@@ -62,7 +62,7 @@ lcg_s=localCachingGeter(workpth=pyxyvPth+r'\tempcache_short',expiretime=60,cooki
 #lcg.gettext(r'https://www.pixiv.net/member_illust.php?mode=manga&illust_id=71119460')
 
 
-img2PID_dic_svpth=pyxyvPth+r'\save\img2piddic_save'
+img2PID_dic_svpth=path.join(pyxyvPth,'save','img2pid')
 def getImgPID(i,donotreload=None):
 	
 	hash_=myhash.phashs(i)
@@ -106,7 +106,8 @@ def delImgPID(i):
 	dic.pop(hash_,None)
 	myio.dumpjson(svpth,dic)
 	
-img2PID_dic_rough_svpth=pyxyvPth+r'\save\img2piddic_rough_save'
+
+img2PID_dic_rough_svpth=path.join(pyxyvPth,'save','img2pid_rough')
 def getImgPID_rough(i):
 	kwargs={"length":70,"offs":1,"rm":None,"w":8}
 	hash_=myhash.hashs(myhash.phashi(i,**kwargs))
@@ -205,7 +206,7 @@ def getImageBinariesByPID(pid=70829971):
 		#connection_throttle.acquire()
 		ret.append((lcg.getbin(iurl,headerex={'Referer':rurl},retry=8),ext))
 	return ret
-def getThumbedImageFilesByPID(pid=70829971,svpth=pyxyvPth+r'\tempimgcache\\'):
+def getThumbedImageFilesByPID(pid=70829971,svpth=path.join(pyxyvPth,'temp_img')):
 	return getImageFilesByPID_(pid=pid,quality='regular',svpth=svpth)
 	imageURLs=getImageURLsByPID(pid=pid)
 	if('ERR' in imageURLs):
@@ -224,13 +225,13 @@ def getThumbedImageFilesByPID(pid=70829971,svpth=pyxyvPth+r'\tempimgcache\\'):
 		
 	return ret
 	
-def getImageFilesByPID(pid=70829971,svpth=pyxyvPth+r'\tempimgcache\\'):
+def getImageFilesByPID(pid=70829971,svpth=path.join(pyxyvPth,'temp_img')):
 	binaries=getImageBinariesByPID(pid)
 	if('ERR' in binaries):
 		return binaries
 	ret=[]
 	for bi,ext in binaries:
-		svpath=svpth+'\\'+myhash.hashs(myhash.hashi(bi))+ext
+		svpath=path.join(svpth,myhash.hashs(myhash.hashi(bi)),ext)
 		
 		savebin(svpath,bi)
 		ret.append(svpath)
@@ -239,7 +240,7 @@ def getImageFilesByPID(pid=70829971,svpth=pyxyvPth+r'\tempimgcache\\'):
 		saveImgPID_rough(i,pid)
 	return ret
 
-illust_info_cache=myhash.splitedDict(pth=pyxyvPth+r'\illust_info_cache',splitMethod=lambda x:str(x)[:3])
+illust_info_cache=myhash.splitedDict(pth=path.join(pyxyvPth,'illust_info_cache'),splitMethod=lambda x:str(x)[:3])
 
 	
 def getIllustInfoByPID(pid=70793074):
@@ -395,7 +396,7 @@ def getRelatedRecommendedPIDs(pid=70558528,limit=18):
 	#print(t)
 	dic=json.loads(t)
 	return dic['body']['nextIds']
-def bfsRecommandCrawl(urls=None,timelimit=20,wait=1.1,allow_R18=False,svpth=pyxyvPth+r'\tempimgcache\\',bookmarkmin=100,start_pid=[70805502],numlimit=2,pagerecommendlimit=10,pagecountlimit=4,muchbookmarkedsvpth=None,bookmarkmuch=1900,callback=None,callback_kwargs=None,restrict_tags=None):
+def bfsRecommandCrawl(urls=None,timelimit=20,wait=1.1,allow_R18=False,svpth=path.join(pyxyvPth,'crawled'),bookmarkmin=100,start_pid=[70805502],numlimit=2,pagerecommendlimit=10,pagecountlimit=4,muchbookmarkedsvpth=None,bookmarkmuch=1900,callback=None,callback_kwargs=None,restrict_tags=None):
 	start_t=time.time()
 	visited=set([])
 	head=0
@@ -572,7 +573,7 @@ def getGif(pxinfo):
 	
 	return ret
 	
-def getImageFilesByPID_(pid,pages=None,quality="regular",svpth=pyxyvPth+r'\tempimgcache'):
+def getImageFilesByPID_(pid,pages=None,quality="regular",svpth=path.join(pyxyvPth,'tempimgcache')):
 	pxinfo=getIllustInfoByPID(pid)
 	#print(pxinfo)
 	p0url=pxinfo['p0_urls'][quality]
@@ -594,7 +595,7 @@ def getImageFilesByPID_(pid,pages=None,quality="regular",svpth=pyxyvPth+r'\tempi
 		saveImgPID_rough(i,pid)
 	#print(ret)
 	return ret
-getUserIDByName_save=myhash.splitedDict(pth=pyxyvPth+r'\getUserIDByName_save')
+getUserIDByName_save=myhash.splitedDict(pth=path.join(pyxyvPth,'getUserIDByName_save'))
 def getUserIDByName(username):
 	if(username in getUserIDByName_save and getUserIDByName_save[username]):
 		return getUserIDByName_save[username]

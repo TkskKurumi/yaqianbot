@@ -49,8 +49,8 @@ class localCachingGeter:
 			# return ret
 	connection_throttle_acuire=c_t_a
 	def __init__(self,workpth=defPth,expiretime=2,proxies=None,maxCacheNum=2000,lock=None,cookies=None,connection_throttle=(30,2)):
-		self.savepth=workpth+r'\tempcache'
-		self.exptime_save_pth=workpth+r'\save\exptime_%s'%expiretime
+		self.savepth=path.join(workpth,'tempcache')
+		self.exptime_save_pth=path.join(workpth,'save','exptime_%s'%expiretime)
 		self.exptimes={}
 		self.text_mem={}
 		self.bin_mem={}
@@ -77,9 +77,9 @@ class localCachingGeter:
 		else:
 			self.lock=None
 		self.maxCacheNum=maxCacheNum
-		for i in glob(self.exptime_save_pth+r'\exptime_save*.json'):
+		for i in glob(path.join(self.exptime_save_pth,'exptime_save*.json')):
 			try:
-				i_=i.replace(self.exptime_save_pth+r'\exptime_save','').replace('.json','')
+				i_=i.replace(path.join(self.exptime_save_pth,'exptime_save'),'').replace('.json','')
 				self.exptimes[i_]=json.loads(opentext(i))
 			except Exception:
 				pass
@@ -102,7 +102,7 @@ class localCachingGeter:
 			ext='.html'
 		else:
 			ext='.tmp'
-		savepth=self.savepth+r'\%s%s'%(hash_,ext)
+		savepth=path.join(self.savepth,'%s%s'%(hash_,ext))
 		return savepth
 	getpath=getsavepth
 	def gettext(self,url,headers=header,proxies=None,cookies=None,headerex={},expiretime=None,retry=3,referer=None):
@@ -122,7 +122,7 @@ class localCachingGeter:
 			hash_=hashs(url+str(headerex))
 		else:
 			hash_=hashs(url)
-		savepth=self.savepth+r'\%s.html'%hash_
+		savepth=path.join(self.savepth,'%s.html'%hash_)
 		#print(url,savepth)
 		if(not( hash_[:2] in self.exptimes)):
 			self.exptimes[hash_[:2]]={}
@@ -196,7 +196,7 @@ class localCachingGeter:
 		else:
 			hash_=hashs(url)
 		self.getbin(url,headers=headers,proxies=proxies,cookies=cookies,headerex=headerex,expiretime=expiretime)
-		savepth=self.savepth+r'\%s.tmp'%hash_
+		savepth=path.join(self.savepth,'%s.tmp'%hash_)
 		return savepth
 	def getbin(self,url,headers=header,proxies=None,cookies=None,headerex={},expiretime=None,retry=3,referer=None):
 		header_=copy.deepcopy(headers)
@@ -215,7 +215,7 @@ class localCachingGeter:
 			hash_=hashs(url+str(headerex))
 		else:
 			hash_=hashs(url)
-		savepth=self.savepth+r'\%s.tmp'%hash_
+		savepth=path.join(self.savepth,'%s.tmp'%hash_)
 		if(not( hash_[:2] in self.exptimes)):
 			self.exptimes[hash_[:2]]={}
 		#print(url,savepth)
@@ -279,17 +279,18 @@ class localCachingGeter:
 		if(len(self.text_mem)>200):
 			for i in random.sample(list(self.text_mem),50):
 				self.text_mem.pop(i,None)
-			
-		if(len(list(glob(self.savepth+r'\*')))>self.maxCacheNum):
-			samplenum=min(int(len(list(glob(self.savepth+r'\*')))*0.3),self.maxCacheNum)
-			t=random.sample(list(glob(self.savepth+r'\*')),samplenum)
+		tmp=path.join(self.savepth,'*')
+		if(len(list(glob(tmp)))>self.maxCacheNum):
+			samplenum=min(int(len(list(glob(tmp)))*0.3),self.maxCacheNum)
+			t=random.sample(list(glob(tmp)),samplenum)
 			for i in t:
 				try:
 					os.remove(i)
 				except Exception as e:
 					pass
 		t=time.time()
-		myio.updatejson(self.exptime_save_pth+r'\exptime_save%s.json'%session,self.exptimes[session])
+		pth=path.join(self.exptime_save_pth,'exptime_save%s.json'%session)
+		myio.updatejson(pth,self.exptimes[session])
 		if(self.lock):
 			self.lock.release()
 lcg=localCachingGeter
