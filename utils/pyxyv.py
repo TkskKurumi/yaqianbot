@@ -588,8 +588,8 @@ def getImageFilesByPID_(pid,pages=None,quality="regular",svpth=path.join(pyxyvPt
 		#print(headerex)
 		b=lcg.getbin(purl,headerex=headerex,retry=8)
 		name=path.basename(purl)
-		myio.savebin(svpth+'\\'+name,b)
-		ret.append(svpth+'\\'+name)
+		myio.savebin(path.join(svpth,name),b)
+		ret.append(path.join(svpth,name))
 	for i in ret:
 		saveImgPID(i,pid)
 		saveImgPID_rough(i,pid)
