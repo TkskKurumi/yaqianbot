@@ -307,13 +307,13 @@ class splitedDict:
         if(self.lazy_load):
             self.lazy_load_(path.join(self.pth,'%s.json'%sk))
         if(self.lazy_load):
-            self.lazy_load_(self.part_savepth(self,sk))
+            self.lazy_load_(self.part_savepth(sk))
         self.dic.get(sk,{}).pop(name,None)
         self.Lock.release()
     def get(self,name,*args):
         sk=self.splitMethod(name)
         if(self.lazy_load):
-            self.lazy_load_(self.part_savepth(self,sk))
+            self.lazy_load_(self.part_savepth(sk))
         if(sk in self.dic):
             if(name in self.dic[sk]):
                 return self.dic[sk][name]
