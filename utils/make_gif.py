@@ -57,7 +57,7 @@ def make_gif(imgs, size=None, ss=None, pth=pth, fps=12, quality=100, width=None,
         seqpths = glob_exts(seqpth, ['png'])
         seqpths = ' '.join(['"%s"' % i for i in seqpths])
     else:
-        seqpths = seqpth+'\*.png'
+        seqpths = path.join(seqpth, '*.png')
 
     script = f'gifski {seqpths} --fps {fps} --quality {quality} --width {size[0]} --height {size[1]} -o "{svpth}"'
     print(script)
