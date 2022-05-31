@@ -38,7 +38,7 @@ class mesh_deform:
 				for y in [0,h-1]:
 					points.append((x,y))
 		points=[point(x,y) for x,y in points]
-		self.mesh=myMesh.mesh.generate_mesh_by_points1(points)
+		self.mesh=myMesh.mesh.delaunay(points)
 		self.mesh.point_info=[_ for _ in self.mesh.points]
 	
 	def getp(self,x,y):

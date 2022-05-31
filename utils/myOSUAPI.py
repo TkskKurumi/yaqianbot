@@ -162,8 +162,8 @@ def illust_user_info(uinfo,bg=None,scores=None,score_subtitles=None,score_mode=N
     layer1=new_layer()    #paste rank
     rank_height=username_height*(grate**0.5)
     pp=uinfo['statistics']['pp']
-    if('pp_rank' in uinfo['statistics']):
-        rank = '#%d'%uinfo['statistics']['pp_rank']
+    if('global_rank' in uinfo['statistics']):
+        rank = '#%d'%uinfo['statistics']['global_rank']
     else:
         rank = " -"
     rank_text="%.1fpp / %s"%(pp,rank)

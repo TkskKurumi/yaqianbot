@@ -174,9 +174,10 @@ def arbquadmapping(p1,p2,p3,p4):
 		
 		return L1.intersection(L2)
 	return ret
-def segment_intersection(A,B,C,D):
-	if(A.on_segment(C,D) or B.on_segment(C,D) or C.on_segment(A,B) or D.on_segment(A,B)):
-		return True
+def segment_intersection(A,B,C,D,strict=True):
+	if(not strict):
+		if(A.on_segment(C,D) or B.on_segment(C,D) or C.on_segment(A,B) or D.on_segment(A,B)):
+			return True
 	AC=C-A
 	AD=D-A
 	AB=B-A
@@ -194,4 +195,32 @@ def normalize_arg(arg,rad=3.14159):
 	
 quad_map=arbquadmapping
 
+
+def judge_P_in_Cirle_ABC(A,B,C,P):
+	#tmp=lambda a:a if isinstance(a,tuple) else a.xy
+	tmp=lambda a:a.xy
+	x0,y0=tmp(A)
+	x1,y1=tmp(B)
+	x2,y2=tmp(C)
+	xp,yp=tmp(P)
+	denominator=[[x0,y0,2],[x1,y1,2],[x2,y2,2]]
+	denominator=np.linalg.det(np.array(denominator,np.float64))
+	tmp=lambda a,b:a*a+b*b
+	l0=tmp(x0,y0)
+	l1=tmp(x1,y1)
+	l2=tmp(x2,y2)
 	
+	x=[[l0,y0,1],[l1,y1,1],[l2,y2,1]]
+	x=np.linalg.det(np.array(x,np.float64))/denominator
+	
+	y=[[x0,l0,1],[x1,l1,1],[x2,l2,1]]
+	y=np.linalg.det(np.array(y,np.float64))/denominator
+	
+	O=point(x,y)
+	
+	R=O.dist(A)
+	
+	OP=P.dist(O)
+	
+	enmiao=OP-R
+	return asgn(enmiao)

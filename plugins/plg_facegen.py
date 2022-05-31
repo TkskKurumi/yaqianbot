@@ -1122,3 +1122,41 @@ def cmd_xiaosan1(ctx):
         frames.append(frame.convert("RGB"))
     gif = make_gif(frames, fps = 18, ss=1e5)
     simple_send(ctx, gif)
+
+
+@receiver
+@threading_run
+@start_with("/3d转")
+def cmd_3drotate(ctx):
+    from PIL import Image
+    from mesh_deform import mesh_deform, point
+    import math
+    from pic2pic import squareSize
+    im = Image.open(simple_ctx(ctx).get_rpics()[0])
+    ss = 1e4
+    im = squareSize(im, ss)
+    w, h = im.size
+    lu = [0,0]
+    ru = [w-1,0]
+    ll = [0,h-1]
+    rl = [w-1,h-1]
+    mid = [w/2,h/2]
+    md = mesh_deform(im,qdpoints=[lu,ru,ll,rl,mid],mesh_cnt=0,ensure_corner=False)
+    n_frames = 15
+    frames = []
+    print(md.points, md.mesh.edges)
+    for i in range(n_frames):
+
+        meow = i/n_frames*2*math.pi
+        md.points[0] = point(w/2,0)+point(w/2*math.cos(meow),w/4*math.sin(meow))
+        md.points[3] = point(w/2,0)+point(w/2*math.cos(meow+math.pi),w/4*math.sin(meow+math.pi))
+        md.points[2] = point(w/2,h/2)
+        md.points[1] = point(w/2,h)+point(w/2*math.cos(meow),-w/4*math.sin(meow))
+        md.points[4] = point(w/2,h)+point(w/2*math.cos(meow+math.pi),-w/4*math.sin(meow+math.pi))
+        for idx, p in enumerate(md.points):
+            md.points[idx] = point(w/2,h/2)+(p-point(w/2,h/2))*0.85
+        print(i/n_frames,md.points)
+        im=md.render1()
+        frames.append(im)
+    mg = plugins['plg_facegen'].make_gif
+    simple_send(ctx,mg(frames,fps=18,ss=ss))

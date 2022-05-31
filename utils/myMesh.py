@@ -1,9 +1,28 @@
-from myGeometry import point,segment_intersection
+from myGeometry import point, segment_intersection, judge_P_in_Cirle_ABC
+inCircle=judge_P_in_Cirle_ABC
+segInter = segment_intersection
 from mymath import asgn
 import math,random
 from math import ceil,floor
 from PIL import Image,ImageDraw,ImageFont
-
+def normalize_edge(u,v):
+	return tuple(sorted([u,v]))
+class graph:	#undirected unweighted graph
+	def __init__(self,neibours=None,edges=None):
+		self.neibours=neibours or dict()
+		self.edges=edges or set()
+	def add_edge(self,u,v):
+		self.neibours[u]=self.neibours.get(u,set())
+		self.neibours[u].add(v)
+		self.neibours[v]=self.neibours.get(v,set())
+		self.neibours[v].add(u)
+		edg=normalize_edge(u,v)
+		self.edges.add(edg)
+	def remove_edge(self,u,v):
+		if(v in self.neibours[u]):
+			self.neibours[u].remove(v)
+			self.neibours[v].remove(u)
+			self.edges.remove(normalize_edge(u,v))
 def edge2mesh2tris(edge2mesh):
 	ret=set()
 	for edge in edge2mesh:
@@ -255,6 +274,155 @@ class mesh:
 			neibours[u].add(v)
 			neibours[v].add(u)
 		return mesh(points,edges,neibours,{},edge2mesh)
+	def delaunay(points,debug=False,prog_cb=None):
+		points=sorted(points,key=lambda x:x.xy)
+		G=graph()
+		def illust():
+			edge2mesh={}
+			for u,v in G.edges:
+				e=normalize_edge(u,v)
+				for w in G.neibours[u]:
+					if(w==u or w==u):
+						continue
+					if(normalize_edge(w,v) in G.edges):
+						edge2mesh[e]=edge2mesh.get(e,set())
+						edge2mesh[e].add(w)
+			mesh(points,G.edges,G.neibours,dict(),edge2mesh).illust().show()
+		mx_prog=0
+		now_prog=0
+		def calc_mx_prog(l,r):
+			nonlocal mx_prog
+			mx_prog+=r-l+1
+			if(r-l<=2):
+				return
+			mid=(l+r)>>1
+			calc_mx_prog(l,mid)
+			calc_mx_prog(mid+1,r)
+			return
+		if(prog_cb):
+			calc_mx_prog(0,len(points)-1)
+		def div(l,r):
+			nonlocal points,G,now_prog,mx_prog
+			#print(l,r)
+			if(r-l<=2):
+				for i in range(l,r+1):
+					for j in range(i+1,r+1):
+						#print("ln367",points[i],points[j])
+						G.add_edge(i,j)
+				if(prog_cb):
+					now_prog+=r-l+1
+					prog_cb(now_prog/mx_prog)
+				return
+			
+			mid=(l+r)>>1
+			div(l,mid)
+			div(mid+1,r)
+			nowl=l
+			nowr=r
+			flag=True
+			while(flag):
+				flag=False
+				pL=points[nowl]
+				pR=points[nowr]
+				for t in G.neibours[nowl]:
+					pT=points[t]
+					tmp=(pL-pR)**(pT-pR)
+					tmp=asgn(tmp)
+					if(tmp>0 or (tmp==0 and pR.dist(pT)<pR.dist(pL))):
+						nowl=t
+						flag=True
+						break
+				if(flag):continue
+				for t in G.neibours[nowr]:
+					pT=points[t]
+					tmp=(pR-pL)**(pT-pL)
+					tmp=asgn(tmp)
+					if(tmp<0 or (tmp==0 and pL.dist(pT)<pL.dist(pR))):
+						nowr=t
+						flag=True
+						break
+			if(debug):print('ln399 add',points[nowl],points[nowr])
+			G.add_edge(nowl,nowr)
+			flag=True
+			
+			while(True):
+				flag=False
+				pL=points[nowl]
+				pR=points[nowr]
+				ch=None
+				side=0
+				for t in G.neibours[nowl]:
+					pT=points[t]
+					sgn=asgn((pR-pL)**(pT-pL))
+					if(sgn>0 and ((ch is None)or inCircle(pL,pR,points[ch],pT)<0)):
+						ch=t
+						side=-1
+				for t in G.neibours[nowr]:
+					pT=points[t]
+					sgn=asgn((pT-pR)**(pL-pR))
+					if(sgn>0 and ((ch is None)or inCircle(pL,pR,points[ch],pT)<0)):
+						
+						'''if(nowl==1 and t==8):
+							print("              ln431")
+						if(ch is not None):
+							for tt in G.neibours[nowl]:
+								if(tt==nowl or tt==nowr or tt==t):continue
+								if(inCircle(pL,pR,points[t],points[tt])<0):
+									if(nowl==1 and t==8):
+										print("              ln437",pL,pR,points[t],points[tt])
+									f=False
+						if(nowl==1 and t==8):
+							print("              ln437",f)'''
+						
+						ch=t
+						side=1
+				if(ch is None):break
+				pCH=points[ch]
+				
+				if(side==-1):
+					to_remove=[]
+					for t in G.neibours[nowl]:
+						pT=points[t]
+						if(t==nowl or t==nowr):continue
+						if(segInter(pL,pT,pR,pCH)):
+							to_remove.append(t)
+					for t in to_remove:
+						if(debug):print('ln428 rm',points[nowl],points[t])
+						G.remove_edge(nowl,t)
+					if(debug):illust()
+					nowl=ch
+					if(debug):print('ln430 add',points[nowl],points[nowr])
+					if(debug):illust()
+					G.add_edge(nowl,nowr)
+				else:
+					to_remove=[]
+					for t in G.neibours[nowr]:
+						pT=points[t]
+						if(t==nowl or t==nowr):continue
+						if(segInter(pR,pT,pL,pCH)):
+							to_remove.append(t)
+					for t in to_remove:
+						if(debug):print('ln440 rm',points[nowr],points[t])
+						G.remove_edge(nowr,t)
+					if(debug):illust()
+					nowr=ch
+					if(debug):print('ln444 add',points[nowl],points[nowr])
+					if(debug):illust()
+					G.add_edge(nowl,nowr)
+			if(prog_cb):
+				now_prog+=r-l+1
+				prog_cb(now_prog/mx_prog)
+		div(0,len(points)-1)
+		edge2mesh={}
+		for u,v in G.edges:
+			e=normalize_edge(u,v)
+			for w in G.neibours[u]:
+				if(w==u or w==u):
+					continue
+				if(normalize_edge(w,v) in G.edges):
+					edge2mesh[e]=edge2mesh.get(e,set())
+					edge2mesh[e].add(w)
+		return mesh(points,G.edges,G.neibours,dict(),edge2mesh)
 	def generate_mesh_by_points1(points):
 		to_add=[]
 		
@@ -335,51 +503,12 @@ class mesh:
 			ret[(a,b,c)]=ret_
 		return ret
 if(__name__=='__main__'):
-	import random,pic2pic,time
-	from PIL import Image,ImageDraw
-	from annoy import AnnoyIndex
-	w,h=666,666
-	im=Image.new("RGB",(w,h),(255,255,255))
-	dr=ImageDraw.Draw(im)
-	points=[]
-	for i in range(300):
-		points.append((random.randrange(w),random.randrange(h)))
-	points=pic2pic.kmeans(points,30,5)[0]
+	ls=[]
+	ls.append(point(0,0))
+	ls.append(point(100,0))
+	ls.append(point(0,100))
+	ls.append(point(100,100))
 	
-	points=[point(x,y) for x,y in points]
-	points.append(point(0,0))
-	points.append(point(0,h-1))
-	points.append(point(w-1,0))
-	points.append(point(w-1,h-1))
-	m=mesh.generate_mesh_by_points(points,debug=False)
-	wtf=set(range(len(m.points)))
-	for u,v in m.edges:
-		pu=m.points[u].xy
-		pv=m.points[v].xy
-		if(u in wtf):
-			wtf.remove(u)
-		if(v in wtf):
-			wtf.remove(v)
-		fills=[(255,0,0),(0,255,0),(0,0,255)]
-		dr.line(pu+pv,fill=random.choice(fills))
-	print(wtf)
-	im.show()
-	tmtm=time.time()
-	ann=AnnoyIndex(2,'euclidean')
-	for idx,i in enumerate(m.points):
-		ann.add_item(idx,i.xy)
-	ann.build(2)
-	for i in range(10):
-		x,y=random.randrange(w),random.randrange(h)
-		
-		mm=m.get_mesh_by_xy(x,y)
-		
-		print(all([conv in temp for conv in mm]))
-		
-		
-		img=im.copy()
-		dr=ImageDraw.Draw(img)
-		for _ in mm:
-			dr.line((x,y)+m.points[_].xy,(170,7,145))
-		img.show()
-	#print(time.time()-tmtm)
+	m=mesh.delaunay(ls)
+	m.illust().show()
+	print(m.neibours)
